@@ -1,0 +1,967 @@
+<nav class="subnav">
+  <ul class="nav">
+    <li class="nav-item">
+      <a class="nav-link active" href="#">Your Systems</a>
+    </li>
+  </ul>
+</nav>
+<div class="content-container">
+  <div class="content-area" style="overflow: visible;">
+    <div class="mkp-system-header">
+      <h3>{{activeSystem.getSystem().name}}</h3>
+      <div class="btn-group btn-primary btn-sm">
+        <button class="btn" (click)="saveSystem()">Save</button>
+        <!--<button class="btn btn-danger" (click)="deleteSystem()">Delete</button>-->
+      </div>
+    </div>
+    <hr /><br />
+    <div *ngIf="mode == Mode.HomeView">
+      <form clrForm>
+        <clr-input-container>
+          <label>System Name</label>
+          <input clrInput
+                 [ngModelOptions]="{standalone: true}"
+                 [(ngModel)]="activeSystem.getSystem().name" />
+        </clr-input-container>
+      </form>
+    </div>
+    <div *ngIf="mode == Mode.ImportExportView">
+      <h1>Import / Export</h1>
+      <h2>Export to Space Engine</h2>
+      <button class="btn" (click)="getSpaceEngineExport()">Generate Files</button>
+      <ol>
+        <li>Navigate to your <a href="http://spaceengine.org/">Space Engine</a> installation, then create two files at:</li>
+        <li>
+          <b>addons\catalogs\stars\{{SEExportFileset.systemFilepathName}}-star.sc</b>
+          <textarea class="mkp-export" [(ngModel)]='SEExportFileset.starFile' readonly></textarea>
+        </li>
+        <li>
+          <b>addons\catalogs\planets\{{SEExportFileset.systemFilepathName}}-celestial_objects.sc</b>
+          <textarea class="mkp-export" [(ngModel)]='SEExportFileset.celestialFile' readonly></textarea>
+        </li>
+        <li>Open Space Engine, hit F3 and search for one of the objects in the system.</li>
+      </ol>
+    </div>
+    <div *ngIf="mode == Mode.Advanced">
+      <button class="btn btn-warning btn-sm" (click)="template('Solar System')">Replace with copy of the Solar System</button>
+      <p class="p5 no-padding no-margin">Warning: this will permanently overwrite your current system.</p>
+    </div>
+    <svg id="angularDiameter"
+         [ngClass]="{'mkp-ang-active': mode == Mode.AngularDiameterView, 'mkp-ang-inactive': mode != Mode.AngularDiameterView}"></svg>
+    <div *ngIf="mode == Mode.AngularDiameterView" class="mkp-ang-diam-view">
+      <button type="button" class="btn btn-icon btn-primary" (click)="zoomAngDCanvas('in')">
+        <clr-icon shape="zoom-in"></clr-icon>
+      </button>
+      <button type="button" class="btn btn-icon btn-primary" (click)="zoomAngDCanvas('out')">
+        <clr-icon shape="zoom-out"></clr-icon>
+      </button>
+      <button type="button" class="btn btn-icon btn-primary" (click)="zoomAngDCanvas('reset')">
+        <clr-icon shape="refresh"></clr-icon>
+      </button>
+      <div class="clr-row">
+        <div class="clr-col-4">
+          <h2>Select Celestial</h2>
+          <div class="select">
+            <select id="angularDiameterSelect" (change)="updateAngD($event)">
+              <option disabled selected> -- select -- </option>
+              <option *ngFor="let celestial of activeSystem.getAllCelestials()"
+                      [value]="celestial._id">
+                {{celestial.name}}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="clr-col-4" *ngIf="selectedAngDCelestial">
+          <h2>View size in sky of</h2>
+          <div>
+            <h3>Parents</h3>
+            <clr-checkbox (change)="drawAngDCanvas($event)"
+                          *ngFor="let parent of selectedAngDCelestialParents"
+                          [(ngModel)]="selectedAngDCelestialChecked[activeSystem.getCelestialIndex(parent)]">
+              {{parent.name}}
+            </clr-checkbox>
+          </div>
+          <div *ngIf="selectedAngDCelestial.type == 'moon' && selectedAngDCelestialParentSiblings.length > 0">
+            <h3>Parent Siblings</h3>
+            <clr-checkbox (change)="drawAngDCanvas($event)"
+                          *ngFor="let parentSibling of selectedAngDCelestialParentSiblings"
+                          [(ngModel)]="selectedAngDCelestialChecked[activeSystem.getCelestialIndex(parentSibling)]">
+              {{parentSibling.name}}
+            </clr-checkbox>
+          </div>
+          <div *ngIf="selectedAngDCelestialSiblings.length > 0">
+            <h3>Siblings</h3>
+            <clr-checkbox (change)="drawAngDCanvas($event)"
+                          *ngFor="let sibling of selectedAngDCelestialSiblings"
+                          [(ngModel)]="selectedAngDCelestialChecked[activeSystem.getCelestialIndex(sibling)]">
+              {{sibling.name}}
+            </clr-checkbox>
+          </div>
+          <div *ngIf="selectedAngDCelestial.type != 'moon' && selectedAngDCelestialChildren.length > 0">
+            <h3>Children</h3>
+            <clr-checkbox (change)="drawAngDCanvas($event)"
+                          *ngFor="let child of selectedAngDCelestialChildren"
+                          [(ngModel)]="selectedAngDCelestialChecked[activeSystem.getCelestialIndex(child)]">
+              {{child.name}}
+            </clr-checkbox>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="mode == Mode.StabilityView">
+      <clr-datagrid>
+        <clr-dg-column>Celestial</clr-dg-column>
+        <clr-dg-column>Stability</clr-dg-column>
+        <clr-dg-column>Mass</clr-dg-column>
+        <clr-dg-column>Semi-major axis</clr-dg-column>
+
+        <clr-dg-row *ngFor="let celestial of activeSystem.getAllCelestials()">
+          <clr-dg-cell>{{celestial.name}}</clr-dg-cell>
+          <clr-dg-cell *ngIf="celestial.type != 'star'">
+            <span ngClass="{{activeSystem.getStability(celestial, celestial).class}}">{{activeSystem.getStability(celestial, celestial).stability}}</span>
+          </clr-dg-cell>
+          <clr-dg-cell *ngIf="celestial.type != 'star'">
+            <input type="text"
+                   class="clr-input"
+                   [ngModelOptions]="{standalone: true}"
+                   [(ngModel)]="celestial.mass"
+                   (ngModelChange)="celestialChanged(celestial, 'stability')" />
+            <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>&nbsp;M⊕
+          </clr-dg-cell>
+          <clr-dg-cell *ngIf="celestial.type != 'star'">
+            <input type="text"
+                   class="clr-input"
+                   [ngModelOptions]="{standalone: true}"
+                   [(ngModel)]="celestial.SMA"
+                   (keydown.enter)="activeSystem.updateOrdering()"
+                   (ngModelChange)="celestialChanged(celestial, 'stability')" />
+            <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>&nbsp;Gm
+          </clr-dg-cell>
+
+          <clr-dg-row-detail *clrIfExpanded>
+            <table class="table" *ngIf="celestial.type != 'star'">
+              <thead>
+                <tr>
+                  <th>Sibling Celestial</th>
+                  <th>Stability</th>
+                  <th>Parent / sibling force ratio</th>
+                  <th>Mass</th>
+                  <th>Semi-major axis</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let sibling of activeSystem.getSiblingObjects(celestial)">
+                  <td>{{sibling.name}}</td>
+                  <td style="min-width: 12rem;"><span ngClass="{{activeSystem.getStability(celestial, sibling).class}}">{{activeSystem.getStability(celestial, sibling).stability}}</span></td>
+                  <td><b>{{activeSystem.getStability(celestial, sibling).ratio}}x</b> weaker than parent</td>
+                  <td>
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="sibling.mass"
+                           (ngModelChange)="celestialChanged(sibling, 'stability')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>&nbsp;M⊕
+                  </td>
+                  <td>
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="sibling.SMA"
+                           (keydown.enter)="activeSystem.updateOrdering()"
+                           (ngModelChange)="celestialChanged(sibling, 'stability')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>&nbsp;Gm
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div *ngIf="celestial.type == 'star'">
+              Support for multiple stars and for the stability of stars is not implemented at this time.
+            </div>
+          </clr-dg-row-detail>
+        </clr-dg-row>
+      </clr-datagrid>
+    </div>
+    <div *ngIf="mode == Mode.Tides">
+      <div class="clr-row">
+        <div class="clr-col-4">
+          <h2>Select Celestial</h2>
+          <div class="select">
+            <select id="tideSelect" (change)="updateTide($event)">
+              <option disabled selected> -- select -- </option>
+              <option *ngFor="let celestial of activeSystem.getAllCelestials()"
+                      [value]="celestial._id">
+                {{celestial.name}}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="clr-col-8" *ngIf="selectedTideCelestial">
+          <div *ngIf="selectedTideCelestial.type == 'star'">
+            Tides are currently not supported for stars.
+          </div>
+          <div *ngIf="selectedTideCelestial.type != 'star'">
+            <div>
+              <h3>Parents</h3>
+              <clr-datagrid>
+                <clr-dg-column>Name</clr-dg-column>
+                <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
+                <clr-dg-column>Avg Strength (x Moon)</clr-dg-column>
+                <clr-dg-column>Min Strength (x Moon)</clr-dg-column>
+
+                <clr-dg-row *ngFor="let parent of selectedTideCelestialParents">
+                  <clr-dg-cell>{{parent.name}}</clr-dg-cell>
+                  <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parent).min}}</clr-dg-cell>
+                  <clr-dg-cell><b>{{activeSystem.getTide(selectedTideCelestial, parent).avg}}</b></clr-dg-cell>
+                  <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parent).max}}</clr-dg-cell>
+                </clr-dg-row>
+              </clr-datagrid>
+            </div>
+            <!--
+  <div *ngIf="selectedTideCelestial.type == 'moon' && selectedTideCelestialParentSiblings.length > 0">
+    <h3>Parent Siblings</h3>
+    <clr-datagrid>
+      <clr-dg-column>Name</clr-dg-column>
+      <clr-dg-column>Min Strength (x Moon)</clr-dg-column>
+      <clr-dg-column>Avg Strength (x Moon)</clr-dg-column>
+      <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
+
+      <clr-dg-row *ngFor="let parentSibling of selectedTideCelestialParentSiblings">
+        <clr-dg-cell>{{parentSibling.name}}</clr-dg-cell>
+        <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parentSibling).min}}</clr-dg-cell>
+        <clr-dg-cell><b>{{activeSystem.getTide(selectedTideCelestial, parentSibling).avg}}</b></clr-dg-cell>
+        <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parentSibling).max}}</clr-dg-cell>
+      </clr-dg-row>
+    </clr-datagrid>
+  </div>-->
+            <div *ngIf="selectedTideCelestialSiblings.length > 0">
+              <h3>Siblings</h3>
+              <clr-datagrid>
+                <clr-dg-column>Name</clr-dg-column>
+                <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
+                <clr-dg-column>Avg Strength (x Moon)</clr-dg-column>
+                <clr-dg-column>Min Strength (x Moon)</clr-dg-column>
+
+                <clr-dg-row *ngFor="let sibling of selectedTideCelestialSiblings">
+                  <clr-dg-cell>{{sibling.name}}</clr-dg-cell>
+                  <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, sibling).min}}</clr-dg-cell>
+                  <clr-dg-cell><b>{{activeSystem.getTide(selectedTideCelestial, sibling).avg}}</b></clr-dg-cell>
+                  <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, sibling).max}}</clr-dg-cell>
+                </clr-dg-row>
+              </clr-datagrid>
+            </div>
+            <div *ngIf="selectedTideCelestial.type != 'moon' && selectedTideCelestialChildren.length > 0">
+              <h3>Children</h3>
+              <clr-datagrid>
+                <clr-dg-column>Name</clr-dg-column>
+                <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
+                <clr-dg-column>Avg Strength (x Moon)</clr-dg-column>
+                <clr-dg-column>Min Strength (x Moon)</clr-dg-column>
+
+                <clr-dg-row *ngFor="let child of selectedTideCelestialChildren">
+                  <clr-dg-cell>{{child.name}}</clr-dg-cell>
+                  <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, child).min}}</clr-dg-cell>
+                  <clr-dg-cell><b>{{activeSystem.getTide(selectedTideCelestial, child).avg}}</b></clr-dg-cell>
+                  <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, child).max}}</clr-dg-cell>
+                </clr-dg-row>
+              </clr-datagrid>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!--
+    CELESTIAL VIEW
+  -->
+    <div *ngIf="mode == Mode.CelestialView">
+
+      <h1>{{selectedCelestial.name}}</h1>
+      <button *ngIf="selectedCelestial.type != 'moon'"
+              type="button"
+              (click)="addSatellite(selectedCelestial)"
+              class="btn btn-primary btn-sm">
+        Add Satellite
+      </button>
+      <button *ngIf="selectedCelestial.type != 'star'"
+              type="button"
+              (click)="deleteModalOpen = true"
+              class="btn btn-danger btn-sm">
+        Delete
+      </button>
+      <!--
+    NAME OF THE CELESTIAL OBJECT
+    -->
+      <div class="clr-row">
+        <div class="clr-col-2">
+          <form clrForm>
+            <clr-input-container>
+              <label>Name</label>
+              <input clrInput
+                     [ngModelOptions]="{standalone: true}"
+                     [(ngModel)]="selectedCelestial.name"
+                     (ngModelChange)="selectedCelestialChanged('name')" />
+            </clr-input-container>
+          </form>
+        </div>
+      </div>
+
+      <!--
+    ORBIT OF THE CELESTIAL OBJECT
+    -->
+      <h3 class="mkp-cel-section-header" *ngIf="selectedCelestial.type != 'star'">Orbital Properties</h3>
+      <div class="clr-row" *ngIf="selectedCelestial.type != 'star'">
+        <div class="clr-col-6">
+          <div class="mkp-cel-prop">
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Semi-major axis</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.SMA"
+                           (ngModelChange)="selectedCelestialChanged('SMA')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">gigameters (Gm)</span>
+                </div>
+              </div>
+            </form>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).SMA_AU | number}}
+                </span>
+                &nbsp;AU
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).SMA_kilometers | number}}
+                </span>
+                &nbsp;km
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).SMA_meters | number}}
+                </span>
+                &nbsp;m
+              </span>
+            </div>
+            <form class="clr-form clr-form-compact no-padding">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Eccentricity</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.eccentricity"
+                           (ngModelChange)="selectedCelestialChanged('eccentricity')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                </div>
+              </div>
+            </form>
+            <form class="clr-form clr-form-compact no-padding">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Inclination</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.inclination"
+                           (ngModelChange)="selectedCelestialChanged('inclination')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">°</span>
+                </div>
+              </div>
+            </form>
+            <form class="clr-form clr-form-compact no-padding">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Ascending Node</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.ascendingNode"
+                           (ngModelChange)="selectedCelestialChanged('ascendingNode')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">°</span>
+                </div>
+              </div>
+            </form>
+            <form class="clr-form clr-form-compact no-padding">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Arg. of Periapsis</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.argOfPeriapsis"
+                           (ngModelChange)="selectedCelestialChanged('argOfPeriapsis')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">°</span>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="clr-col-6">
+          <div class="mkp-cel-prop">
+            <div>
+              <label class="clr-control-label">Apoapsis</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).apoapsis_AU | number}}
+                  </span>
+                  &nbsp;AU
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).apoapsis_kilometers | number}}
+                  </span>
+                  &nbsp;km
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="clr-control-label">Periapsis</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).periapsis_AU | number}}
+                  </span>
+                  &nbsp;AU
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).periapsis_kilometers | number}}
+                  </span>
+                  &nbsp;km
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="clr-control-label">Orbit Period</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_concat}}
+                  </span>
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_years | number}}
+                  </span>
+                  &nbsp;years
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_days | number}}
+                  </span>
+                  &nbsp;days
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_hours | number}}
+                  </span>
+                  &nbsp;hours
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_minutes | number}}
+                  </span>
+                  &nbsp;minutes
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_seconds | number}}
+                  </span>
+                  &nbsp;seconds
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_localDays | number}}
+                  </span>
+                  &nbsp;local days
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="mkp-cel-section-header">Physical Properties</h3>
+      <div class="clr-row">
+        <div class="clr-col-6">
+          <div class="mkp-cel-prop">
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Mass</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.mass"
+                           (ngModelChange)="selectedCelestialChanged('mass')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">Earth masses (M⊕)</span>
+                </div>
+              </div>
+            </form>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).mass_sun | number}}
+                </span>
+                &nbsp;M☉
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).mass_jup | number}}
+                </span>
+                &nbsp;M♃
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).mass_moon | number}}
+                </span>
+                &nbsp;M☽︎
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).mass_kg | number}}
+                </span>
+                &nbsp;kg
+              </span>
+            </div>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Radius</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.radius"
+                           (ngModelChange)="selectedCelestialChanged('radius')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">kilometers (km)</span>
+                </div>
+              </div>
+            </form>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radius_sun | number}}
+                </span>
+                &nbsp;R☉
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radius_jup | number}}
+                </span>
+                &nbsp;R♃
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radius_earth | number}}
+                </span>
+                &nbsp;R⊕
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radius_moon | number}}
+                </span>
+                &nbsp;R☽︎
+              </span>
+            </div>
+            <form class="clr-form clr-form-compact no-padding">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Obliquity</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.obliquity"
+                           (ngModelChange)="selectedCelestialChanged('obliquity')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">°</span>
+                </div>
+              </div>
+            </form>
+            <form class="clr-form clr-form-compact no-padding">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Sidereal Day</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.sidereal"
+                           (ngModelChange)="selectedCelestialChanged('sidereal')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext"> hrs</span>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="clr-col-6">
+          <div class="mkp-cel-prop">
+            <div>
+              <label class="clr-control-label">Density</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).density_kgm3 | number}}
+                  </span>
+                  &nbsp;kg/m³
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).density_gcm3 | number}}
+                  </span>
+                  &nbsp;g/cm³
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).density_earth | number}}
+                  </span>
+                  &nbsp;D⊕
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="clr-control-label">Gravity</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).gravity_ms2 | number}}
+                  </span>
+                  &nbsp;m/s²
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).gravity_g | number}}
+                  </span>
+                  &nbsp;g
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 *ngIf="selectedCelestial.type == 'star'"
+          class="mkp-cel-section-header">
+        Stellar Properties
+      </h3>
+      <div class="clr-row" *ngIf="selectedCelestial.type == 'star'">
+        <div class="clr-col-6">
+          <div class="mkp-cel-prop">
+            <div>
+              <label class="clr-control-label">Luminosity</label>
+              <p class="p5 no-padding no-margin">Luminosity varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate luminosities.</p>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).luminosity_W | number}}
+                  </span>
+                  &nbsp;W
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).luminosity_sun | number}}
+                  </span>
+                  &nbsp;suns
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="clr-control-label">Surface Temperature</label>
+              <p class="p5 no-padding no-margin">Temperature varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate temperatures.</p>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_K | number}}
+                  </span>
+                  &nbsp;K
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_C | number}}
+                  </span>
+                  &nbsp;°C
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_F | number}}
+                  </span>
+                  &nbsp;°F
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 *ngIf="selectedCelestial.type != 'star'"
+          class="mkp-cel-section-header">
+        Surface Properties
+      </h3>
+      <div class="clr-row" *ngIf="selectedCelestial.type != 'star'">
+        <div class="clr-col-6">
+          <div class="mkp-cel-prop">
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Albedo</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.albedo"
+                           (ngModelChange)="selectedCelestialChanged('albedo')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext"></span>
+                </div>
+              </div>
+            </form>
+            <p class="p5 no-padding no-margin">
+              The albedo is the ratio of light reflected to light absorbed for a given body.
+              Around .1 for rocky bodies, .3 for Earth-like planets, and .5 for gas planets.
+            </p>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Temperature Adjustment</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="text"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.greenhouse"
+                           (ngModelChange)="selectedCelestialChanged('greenhouse')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">Kelvin (K)</span>
+                </div>
+              </div>
+            </form>
+            <p class="p5 no-padding no-margin">Greenhouse gasses, etc. Earth's greenhouse temperature adjustment is ~33K.</p>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).greenhouse_C | number}}
+                </span>
+                &nbsp;C
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).greenhouse_F | number}}
+                </span>
+                &nbsp;F
+              </span>
+            </div>
+            <div>
+              <label class="clr-control-label">Insolation</label>
+              <p class="p5 no-padding no-margin">Insolation varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate insolation.</p>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).insolation_W | number}}
+                  </span>
+                  &nbsp;W
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).insolation_earths | number}}
+                  </span>
+                  &nbsp;earths
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="clr-control-label">Surface Temperature</label>
+              <p class="p5 no-padding no-margin">Temperature varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate temperatures.</p>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_K | number}}
+                  </span>
+                  &nbsp;K
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_C | number}}
+                  </span>
+                  &nbsp;°C
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_F | number}}
+                  </span>
+                  &nbsp;°F
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="mkp-cel-section-header">System</h3>
+      <div class="clr-row">
+        <div class="clr-col-6">
+          <div class="mkp-cel-prop" *ngIf="selectedCelestial.type != 'star'">
+
+            <div>
+              <label class="clr-control-label">Hill sphere</label>
+              <p class="p5 no-padding no-margin">Satellites are generally stable if they orbit within half of the Hill sphere's outer limit.</p>
+              <div class="mkp-cel-prop-unit-spans">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_AU | number}}
+                  </span>
+                  &nbsp;AU
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_Gm | number}}
+                  </span>
+                  &nbsp;Gm
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_km | number}}
+                  </span>
+                  &nbsp;km
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <!--
+      <div class="mkp-cel-system-container">
+      <clr-tabs>
+        <clr-tab>
+          <button clrTabLink id="link1">Properties</button>
+          <clr-tab-content id="content1" *clrIfActive="true">
+            <div class="clr-row">
+              <div class="clr-col-6">
+              </div>
+            </div>
+          </clr-tab-content>
+        </clr-tab>
+      </clr-tabs>
+    </div>
+    -->
+
+    </div>
+  </div>
+  <nav class="sidenav">
+    <section class="sidenav-content">
+      <section class="nav-group">
+        <label>Main</label>
+        <ul class="nav-list">
+          <li>
+            <a class="nav-link"
+               (click)="setMode(Mode.HomeView)"
+               [ngClass]="{'mkp-selected': mode == Mode.HomeView}">Home</a>
+          </li>
+          <li>
+            <a class="nav-link"
+               (click)="setMode(Mode.ImportExportView)"
+               [ngClass]="{'mkp-selected': mode == Mode.ImportExportView}">Import / Export</a>
+          </li>
+          <li>
+            <a class="nav-link"
+               (click)="setMode(Mode.Advanced)"
+               [ngClass]="{'mkp-selected': mode == Mode.Advanced}">Advanced</a>
+          </li>
+        </ul>
+      </section>
+      <section class="nav-group">
+        <label>Tools</label>
+        <ul class="nav-list">
+          <li>
+            <a class="nav-link"
+               (click)="setMode(Mode.StabilityView)"
+               [ngClass]="{'mkp-selected': mode == Mode.StabilityView}">Stability Table</a>
+          </li>
+          <li>
+            <a class="nav-link"
+               (click)="setMode(Mode.AngularDiameterView)"
+               [ngClass]="{'mkp-selected': mode == Mode.AngularDiameterView}">Angular Diameter Viewer</a>
+          </li>
+          <li>
+            <a class="nav-link"
+               (click)="setMode(Mode.Tides)"
+               [ngClass]="{'mkp-selected': mode == Mode.Tides}">Tidal Strength</a>
+          </li>
+        </ul>
+      </section>
+      <section class="nav-group">
+        <label>Celestial Objects</label>
+        <ul class="celestial-nav-list">
+          <clr-tree-node *ngFor="let star_cto of activeSystem.getCelestialTree()">
+            <!--<clr-icon [attr.shape]="directory.icon"></clr-icon>-->
+            <button class="clr-treenode-link"
+                    (click)="select(star_cto.celestial)"
+                    [ngClass]="{'mkp-selected': star_cto.celestial === selectedCelestial && mode == Mode.CelestialView}">
+              {{star_cto.celestial.name}}
+            </button>
+            <ng-template *ngIf="star_cto.children.length != 0" [clrIfExpanded]="true">
+              <clr-tree-node *ngFor="let planet_cto of star_cto.children">
+                <button class="clr-treenode-link" style="text-overflow: clip;"
+                        (click)="select(planet_cto.celestial)"
+                        [ngClass]="{'mkp-selected': planet_cto.celestial === selectedCelestial && mode == Mode.CelestialView}">
+                  {{planet_cto.celestial.name}}
+                </button>
+                <ng-template *ngIf="planet_cto.children.length != 0" [clrIfExpanded]="true">
+                  <clr-tree-node *ngFor="let moon_cto of planet_cto.children">
+                    <button class="clr-treenode-link"
+                            (click)="select(moon_cto.celestial)"
+                            [ngClass]="{'mkp-selected': moon_cto.celestial === selectedCelestial && mode == Mode.CelestialView}">
+                      {{moon_cto.celestial.name}}
+                    </button>
+                  </clr-tree-node>
+                </ng-template>
+              </clr-tree-node>
+            </ng-template>
+          </clr-tree-node>
+        </ul>
+      </section>
+    </section>
+  </nav>
+</div>
+
+<!--
+MODALS
+-->
+<clr-modal [(clrModalOpen)]="deleteModalOpen" *ngIf="selectedCelestial">
+  <h3 class="modal-title">Are you sure you want to delete {{selectedCelestial.name}} and all of its children?</h3>
+  <div class="modal-body">
+    <p>Deleting is permanent and the celestial cannot be recovered.</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="deleteModalOpen = false">Cancel</button>
+    <button type="button" class="btn btn-danger" (click)="deleteModalOpen = false; delete(selectedCelestial)">Delete</button>
+  </div>
+</clr-modal>

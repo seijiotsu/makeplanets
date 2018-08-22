@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\e2e",
+    "\\server",
+    "\\server\\models",
+    "\\src",
+    "\\src\\app",
+    "\\src\\app\\editor",
+    "\\src\\app\\models",
+    "\\src\\app\\profile",
+    "\\src\\app\\system"
+  ],
+  "SelectedNode": "\\src\\app\\system\\system.component.ts",
+  "PreviewInSolutionExplorer": false
+}

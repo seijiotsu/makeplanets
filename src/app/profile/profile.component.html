@@ -1,0 +1,18 @@
+<div class="mkp-content">
+  <h1>Your Profile</h1>
+
+  <div class="clr-form-control">
+    <label class="clr-control-label">Username</label>
+    <div class="clr-control-container">
+      <div class="clr-input-wrapper">
+        <input type="text"
+               class="clr-input"
+               [ngModelOptions]="{standalone: true}"
+               [(ngModel)]="user.username" />
+      </div>
+    </div>
+  </div>
+  <br />
+  <button class="btn btn-primary" (click)="put()">Update</button>
+  <p>Please reload the page to see any changes (e.g. to username)</p>
+</div>

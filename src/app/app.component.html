@@ -1,0 +1,30 @@
+<div class="main-container">
+  <header class="header">
+    <div class="branding">
+      <a routerLink="" class="nav-link">
+        <clr-icon shape="makeplanets"></clr-icon>
+        <span class="title">Make Planets</span>
+      </a>
+    </div>
+    <div class="header-nav">
+      <a routerLink="/editor" class="nav-link nav-text">Editor</a>
+    </div>
+    <div class="header-actions">
+      <div class="username" *ngIf="!auth.isAuthenticated()">
+        <button class="btn btn-primary" *ngIf="!auth.isAuthenticated()"
+                (click)="auth.login()">
+          LOGIN / REGISTER
+        </button>
+      </div>
+      <div class="username" *ngIf="auth.isAuthenticated()">
+        <span *ngIf="user"><a class="nostyle" routerLink="/profile">{{user.username}}</a></span>
+        <span *ngIf="!user" routerLink="/profile">Configure your profile</span>
+        <button class="btn btn-danger" *ngIf="auth.isAuthenticated()"
+                (click)="auth.logout()">
+          LOGOUT
+        </button>
+      </div>
+    </div>
+  </header>
+  <router-outlet></router-outlet>
+</div>

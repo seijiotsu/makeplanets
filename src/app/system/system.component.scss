@@ -1,0 +1,114 @@
+div.systemComponentContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+div.titleContainer {
+  margin-top: .7em;
+  font-size: 3em;
+  font-family: Comfortaa;
+  color: white;
+  background-color: var(--space_blue);
+}
+/*
+  ----------------------------------
+  || 3 || CELESTIAL OBJECT HOLDER ||
+  ----------------------------------
+*/
+
+div.navspreadfuncContainer {
+  margin-top: 10vh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1vw 3fr 1vw 1fr;
+  grid-template-rows: 1fr;
+  grid-template-areas: "nav . spread . func";
+}
+
+.selected {
+  background-color: var(--jupiter_brown);
+}
+
+/*
+  Custom implementation of Clarity's nav-list
+*/
+ul.celestial-nav-list {
+  padding: 0 0 0 0.5rem;
+  list-style: none;
+  margin-top: 0;
+  text-overflow: clip;
+}
+
+div.navContainer {
+  padding-left: .7vw;
+  padding-right: .7vw;
+  font-family: Comfortaa;
+  grid-area: nav;
+  background-color: white;
+  border-radius: 2vw;
+  min-width: 0;
+  min-height: 0;
+}
+
+div.navContainer div {
+  font-size: .85em;
+  padding: .7vw;
+  cursor: pointer;
+  border-radius: 1vw;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+div.navContainer i {
+  margin-left: .25vw;
+}
+
+div.navContainer li {
+  list-style: circle;
+}
+
+div.navContainer ul {
+  padding-left: 1.4vw;
+}
+
+div.celestialObjHolder {
+  grid-area: spread;
+  background-color: white;
+  min-height: 50vh;
+  border-radius: 2vw;
+  padding: 1vw;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+div.name {
+  width: 30vw;
+  height: 6vw;
+  position: absolute;
+  background-color: var(--jupiter_brown);
+  top: -2vw;
+  left: 0vw;
+  border-radius: 2vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding-left: 2vw;
+}
+
+div.name input {
+  border: 0;
+  background: none;
+  font-size: 1.4em;
+  font-family: Comfortaa;
+}
+
+div.name input:focus {
+  outline: none;
+}

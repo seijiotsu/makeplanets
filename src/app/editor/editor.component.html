@@ -1,0 +1,35 @@
+
+<div *ngIf="auth.isAuthenticated()">
+  <nav class="subnav">
+    <ul class="nav">
+      <li class="nav-item">
+        <a class="nav-link active" href="#">Your Systems</a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="mkp-content">
+    <div class="mkp-system-title">
+      <h2>Your Systems</h2>
+      <button class="btn btn-primary" (click)="newSystem()">
+        <clr-icon shape="plus"></clr-icon>
+        New System
+      </button>
+    </div>
+
+    <ul class="list-unstyled">
+      <li class="mkp-system-list" *ngFor="let system of systems">
+        <div><a routerLink="/editor/system/{{system._id}}">{{system.name}}</a></div> <button class="btn btn-danger btn-icon" (click)="deleteSystem(system._id)"><clr-icon shape="trash"></clr-icon></button>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div *ngIf="!auth.isAuthenticated()">
+  <div class="title-1">Editor</div>
+  <div class="subtitle-1">
+    Registered users can use the Make Planets editor to create and view their own planetary systems, and export them to programs such as Space Engine.
+  </div>
+  <br />
+  <img class="heroimg" src="assets/hero.png" />
+</div>
