@@ -9,7 +9,7 @@
     "\\src\\app\\editor",
     "\\src\\app\\models",
     "\\src\\app\\profile",
-    "\\src\\app\\system"
+    "\\src\\environments"
   ],
   "SelectedNode": "\\src\\app\\system\\system.component.ts",
   "PreviewInSolutionExplorer": false

@@ -4,7 +4,7 @@ import { Celestial } from './models/celestial.model';
 import { System } from './models/system.model';
 import { CelestialTree } from './models/celestialTree';
 import { DerivedCelestialProperties } from './models/derivedCelestialProperties';
-import { Stability, StabilityObject } from './models/stabilities';
+import { Stability, StabilityObject, HillSphere } from './models/stabilities';
 import { PropertyUpdaterService } from './property-updater.service';
 import { AngularDiameter } from './models/angularDiameter';
 import { Relations } from './models/relations';
@@ -42,7 +42,9 @@ export class ActiveSystemService {
   private stabilityTable: StabilityObject[][];
   private celestialIndexMap;
   private stabilityMap = {};
+  private hillSphereMap = {};
   private tideMap = {};
+  
 
   private angDZoom: number = 1;
 
@@ -532,6 +534,23 @@ export class ActiveSystemService {
       } else {
         S.class = "mkp-stability-stable";
         S.stability = Stability.Stable;
+      }
+
+      if (celestial.type == 'moon') {
+        var parentHillSphere = this.getDerivedProperties(parent).hillSphere_Gm;
+
+        if (celestial.SMA > parentHillSphere) {
+          S.hillSphere = HillSphere.Unstable;
+          S.stability = Stability.Unstable;
+          S.class = "mkp-stability-unstable";
+        } else if (celestial.SMA > parentHillSphere / 3) {
+          S.hillSphere = HillSphere.PotentiallyUnstable;
+          if (S.stability == Stability.Stable) S.stability = Stability.Unstable;
+          S.class = "mkp-stability-likely-unstable";
+        } else {
+          S.hillSphere = HillSphere.Stable;
+        }
+
       }
 
       celStabilityMap[celestial._id] = S;

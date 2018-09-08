@@ -14,6 +14,9 @@ import { Mode } from '../models/modes';
 import { Stability } from '../models/stabilities';
 import { ExporterService } from '../exporter.service';
 import { SpaceEngineFileset } from '../models/export/spaceEngineFileset';
+import { UnitConverterService } from '../unit-converter.service';
+
+import { LengthUnits, MassUnits, RadiusUnits, TemperatureUnitTypes } from '../models/units';
 
 declare var Snap: any;
 declare var mina: any;
@@ -54,7 +57,8 @@ export class SystemComponent implements OnInit {
     private location: Location,
     private systemAPI: SystemService,
     public activeSystem: ActiveSystemService,
-    public exporter: ExporterService
+    public exporter: ExporterService,
+    public unitConverter: UnitConverterService
   ) { }
 
   ngOnInit() {
@@ -107,6 +111,7 @@ export class SystemComponent implements OnInit {
 
   selectedCelestialChanged(property) {
     this.activeSystem.calculateDerivedProperties(this.selectedCelestial, property);
+    console.log("All done changing derived properties!");
   }
 
   celestialChanged(celestial: Celestial, property: string) {
@@ -199,6 +204,67 @@ export class SystemComponent implements OnInit {
 
   getSpaceEngineExport(): void {
     this.SEExportFileset = this.exporter.toSpaceEngine();
+  }
+
+  altInput(alt: string): void {
+    var value: number = parseFloat((<HTMLInputElement>document.getElementById('alt-input-' + alt)).value);
+    var c = this.selectedCelestial;
+
+    /*
+     * I sometimes forget case-switch breaks and didn't want to debug that so I'm using if-statements here
+     */
+    if (alt == 'SMA-AU') {
+      c.SMA = this.unitConverter.convert(value, LengthUnits.AU, LengthUnits.gigameters);
+      this.selectedCelestialChanged('SMA');
+    }
+    if (alt == 'SMA-km') {
+      c.SMA = this.unitConverter.convert(value, LengthUnits.kilometers, LengthUnits.gigameters);
+      this.selectedCelestialChanged('SMA');
+    }
+    if (alt == 'SMA-m') {
+      c.SMA = this.unitConverter.convert(value, LengthUnits.meters, LengthUnits.gigameters);
+      this.selectedCelestialChanged('SMA');
+    }
+
+    if (alt == 'mass-sun') {
+      c.mass = this.unitConverter.convert(value, MassUnits.suns, MassUnits.earths);
+      this.selectedCelestialChanged('mass');
+    }
+    if (alt == 'mass-jup') {
+      c.mass = this.unitConverter.convert(value, MassUnits.jups, MassUnits.earths);
+      this.selectedCelestialChanged('mass');
+    }
+    if (alt == 'mass-moon') {
+      c.mass = this.unitConverter.convert(value, MassUnits.moons, MassUnits.earths);
+      this.selectedCelestialChanged('mass');
+    }
+    if (alt == 'mass-kg') {
+      c.mass = this.unitConverter.convert(value, MassUnits.kilograms, MassUnits.earths);
+      this.selectedCelestialChanged('mass');
+    }
+
+    if (alt == 'radius-sun') {
+      c.radius = this.unitConverter.convert(value, RadiusUnits.suns, RadiusUnits.km);
+      this.selectedCelestialChanged('radius');
+    }
+    if (alt == 'radius-jup') {
+      c.radius = this.unitConverter.convert(value, RadiusUnits.jups, RadiusUnits.km);
+      this.selectedCelestialChanged('radius');
+    }
+    if (alt == 'radius-moon') {
+      c.radius = this.unitConverter.convert(value, RadiusUnits.moons, RadiusUnits.km);
+      this.selectedCelestialChanged('radius');
+    }
+    if (alt == 'radius-earth') {
+      c.radius = this.unitConverter.convert(value, RadiusUnits.earths, RadiusUnits.km);
+      this.selectedCelestialChanged('radius');
+    }
+
+    if (alt == 'greenhouse-F') {
+      c.greenhouse = this.unitConverter.convertTemperatureDifference(value, TemperatureUnitTypes.fahrenheit, TemperatureUnitTypes.celsius);
+      this.selectedCelestialChanged('greenhouse');
+    }
+
   }
 
   template(template): void {

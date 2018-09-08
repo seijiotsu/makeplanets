@@ -57,7 +57,7 @@ export class ExporterService {
     translated += "\tParentBody\t\t\"" + this.activeSystem.getParentObject(celestial).name + "\"\n";
     translated += "\tMass\t\t\t" + celestial.mass + "\n";
     translated += "\tRadius\t\t\t" + celestial.radius + "\n";
-    //translated += "\tRotationPeriod\t" + celestial.sidereal + "\n";
+    translated += "\tRotationPeriod\t" + celestial.sidereal + "\n";
     translated += "\tObliquity\t\t" + celestial.obliquity + "\n";
 
     translated += "\tOrbit {\n"
