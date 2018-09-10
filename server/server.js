@@ -302,7 +302,7 @@ app.post('/celestial/', checkJwt, function (req, res) {
   console.log('/celestial/');
 
   //Associate the new system with the POSTing user's id
-  var cel = new Celestial({ owner: req.user.sub });
+  var cel = new Celestial({ owner: req.user.sub, binary: req.body.binary });
   console.log(cel);
 
   Celestial.create(cel, function (err, post) {

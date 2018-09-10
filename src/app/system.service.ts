@@ -47,6 +47,9 @@ export class SystemService {
   public newCelestial(): Observable<Celestial> {
     return this.http.post<Celestial>(celestialAPI, httpOptions).pipe(catchError(this.handleError));
   }
+  public newBinaryCelestial(): Observable<Celestial> {
+    return this.http.post<Celestial>(celestialAPI, { binary: true }, httpOptions).pipe(catchError(this.handleError));
+  }
   public deleteCelestial(_id: string): Observable<any> {
     return this.http.delete(celestialAPI + _id, httpOptions).pipe(catchError(this.handleError));
   }

@@ -82,6 +82,15 @@ export class SystemComponent implements OnInit {
         console.log(err);
       });
   }
+  addBinaryPlanet(celestial: Celestial): void {
+    this.systemAPI.newBinaryCelestial()
+      .subscribe(res => {
+        var newCelestial = this.activeSystem.addSatellite(celestial, res);
+        this.select(newCelestial);
+      }, err => {
+        console.log(err);
+      });
+  }
 
   saveSystem(): void {
     this.systemAPI.putSystem(this.activeSystem.getSystem())
@@ -263,6 +272,83 @@ export class SystemComponent implements OnInit {
     if (alt == 'greenhouse-F') {
       c.greenhouse = this.unitConverter.convertTemperatureDifference(value, TemperatureUnitTypes.fahrenheit, TemperatureUnitTypes.celsius);
       this.selectedCelestialChanged('greenhouse');
+    }
+
+    if (alt == 'massA-sun') {
+      c.massA = this.unitConverter.convert(value, MassUnits.suns, MassUnits.earths);
+      this.selectedCelestialChanged('massA');
+    }
+    if (alt == 'massA-jup') {
+      c.massA = this.unitConverter.convert(value, MassUnits.jups, MassUnits.earths);
+      this.selectedCelestialChanged('massA');
+    }
+    if (alt == 'massA-moon') {
+      c.massA = this.unitConverter.convert(value, MassUnits.moons, MassUnits.earths);
+      this.selectedCelestialChanged('massA');
+    }
+    if (alt == 'massA-kg') {
+      c.massA = this.unitConverter.convert(value, MassUnits.kilograms, MassUnits.earths);
+      this.selectedCelestialChanged('massA');
+    }
+
+    if (alt == 'radiusA-sun') {
+      c.radiusA = this.unitConverter.convert(value, RadiusUnits.suns, RadiusUnits.km);
+      this.selectedCelestialChanged('radiusA');
+    }
+    if (alt == 'radiusA-jup') {
+      c.radiusA = this.unitConverter.convert(value, RadiusUnits.jups, RadiusUnits.km);
+      this.selectedCelestialChanged('radiusA');
+    }
+    if (alt == 'radiusA-moon') {
+      c.radiusA = this.unitConverter.convert(value, RadiusUnits.moons, RadiusUnits.km);
+      this.selectedCelestialChanged('radiusA');
+    }
+    if (alt == 'radiusA-earth') {
+      c.radiusA = this.unitConverter.convert(value, RadiusUnits.earths, RadiusUnits.km);
+      this.selectedCelestialChanged('radiusA');
+    }
+
+    if (alt == 'massB-sun') {
+      c.massB = this.unitConverter.convert(value, MassUnits.suns, MassUnits.earths);
+      this.selectedCelestialChanged('massB');
+    }
+    if (alt == 'massB-jup') {
+      c.massB = this.unitConverter.convert(value, MassUnits.jups, MassUnits.earths);
+      this.selectedCelestialChanged('massB');
+    }
+    if (alt == 'massB-moon') {
+      c.massB = this.unitConverter.convert(value, MassUnits.moons, MassUnits.earths);
+      this.selectedCelestialChanged('massB');
+    }
+    if (alt == 'massB-kg') {
+      c.massB = this.unitConverter.convert(value, MassUnits.kilograms, MassUnits.earths);
+      this.selectedCelestialChanged('massB');
+    }
+
+    if (alt == 'radiusB-sun') {
+      c.radiusB = this.unitConverter.convert(value, RadiusUnits.suns, RadiusUnits.km);
+      this.selectedCelestialChanged('radiusB');
+    }
+    if (alt == 'radiusB-jup') {
+      c.radiusB = this.unitConverter.convert(value, RadiusUnits.jups, RadiusUnits.km);
+      this.selectedCelestialChanged('radiusB');
+    }
+    if (alt == 'radiusB-moon') {
+      c.radiusB = this.unitConverter.convert(value, RadiusUnits.moons, RadiusUnits.km);
+      this.selectedCelestialChanged('radiusB');
+    }
+    if (alt == 'radiusB-earth') {
+      c.radiusB = this.unitConverter.convert(value, RadiusUnits.earths, RadiusUnits.km);
+      this.selectedCelestialChanged('radiusB');
+    }
+
+    if (alt == 'greenhouseA-F') {
+      c.greenhouseA = this.unitConverter.convertTemperatureDifference(value, TemperatureUnitTypes.fahrenheit, TemperatureUnitTypes.celsius);
+      this.selectedCelestialChanged('greenhouseA');
+    }
+    if (alt == 'greenhouseB-F') {
+      c.greenhouseB = this.unitConverter.convertTemperatureDifference(value, TemperatureUnitTypes.fahrenheit, TemperatureUnitTypes.celsius);
+      this.selectedCelestialChanged('greenhouseB');
     }
 
   }

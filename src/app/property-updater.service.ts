@@ -246,6 +246,34 @@ export class PropertyUpdaterService {
 
   }
 
+  //Binary
+  densityA(celestial: Celestial, P: DerivedCelestialProperties): void {
+    var mass_kg = this.unitConverter.convert(celestial.massA, MassUnits.earths, MassUnits.kilograms);
+    var radius_m = this.unitConverter.convert(celestial.radiusA, RadiusUnits.km, RadiusUnits.m);
+    var density = mass_kg / (4 / 3.0 * Math.PI * Math.pow(radius_m, 3));
+
+    var density_gmc3 = this.unitConverter.convert(density, DensityUnits.kgm3, DensityUnits.gcm3);
+    var density_earths = this.unitConverter.convert(density, DensityUnits.kgm3, DensityUnits.earths);
+
+    P.densityA_kgm3 = math.round(density, LOW_PRECISION);
+    P.densityA_gcm3 = math.round(density_gmc3, DEFAULT_PRECISION);
+    P.densityA_earth = math.round(density_earths, DEFAULT_PRECISION);
+
+  }
+  densityB(celestial: Celestial, P: DerivedCelestialProperties): void {
+    var mass_kg = this.unitConverter.convert(celestial.massB, MassUnits.earths, MassUnits.kilograms);
+    var radius_m = this.unitConverter.convert(celestial.radiusB, RadiusUnits.km, RadiusUnits.m);
+    var density = mass_kg / (4 / 3.0 * Math.PI * Math.pow(radius_m, 3));
+
+    var density_gmc3 = this.unitConverter.convert(density, DensityUnits.kgm3, DensityUnits.gcm3);
+    var density_earths = this.unitConverter.convert(density, DensityUnits.kgm3, DensityUnits.earths);
+
+    P.densityB_kgm3 = math.round(density, LOW_PRECISION);
+    P.densityB_gcm3 = math.round(density_gmc3, DEFAULT_PRECISION);
+    P.densityB_earth = math.round(density_earths, DEFAULT_PRECISION);
+
+  }
+
   hillSphere(celestial: Celestial, parent: Celestial, P: DerivedCelestialProperties): void {
     var mass_kg_parent = this.unitConverter.convert(parent.mass, MassUnits.earths, MassUnits.kilograms);
     var mass_kg = this.unitConverter.convert(celestial.mass, MassUnits.earths, MassUnits.kilograms);
@@ -272,6 +300,28 @@ export class PropertyUpdaterService {
     P.gravity_g = math.round(gravity_g, DEFAULT_PRECISION);
   }
 
+  //Binary
+  gravityA(celestial: Celestial, P: DerivedCelestialProperties): void {
+    var mass_kg = this.unitConverter.convert(celestial.massA, MassUnits.earths, MassUnits.kilograms);
+    var radius_m = this.unitConverter.convert(celestial.radiusA, RadiusUnits.km, RadiusUnits.m);
+    var gravity = Constants.G * mass_kg / Math.pow(radius_m, 2);
+
+    var gravity_g = this.unitConverter.convert(gravity, GravityUnits.ms2, GravityUnits.g);
+
+    P.gravityA_ms2 = math.round(gravity, DEFAULT_PRECISION);
+    P.gravityA_g = math.round(gravity_g, DEFAULT_PRECISION);
+  }
+  gravityB(celestial: Celestial, P: DerivedCelestialProperties): void {
+    var mass_kg = this.unitConverter.convert(celestial.massB, MassUnits.earths, MassUnits.kilograms);
+    var radius_m = this.unitConverter.convert(celestial.radiusB, RadiusUnits.km, RadiusUnits.m);
+    var gravity = Constants.G * mass_kg / Math.pow(radius_m, 2);
+
+    var gravity_g = this.unitConverter.convert(gravity, GravityUnits.ms2, GravityUnits.g);
+
+    P.gravityB_ms2 = math.round(gravity, DEFAULT_PRECISION);
+    P.gravityB_g = math.round(gravity_g, DEFAULT_PRECISION);
+  }
+
   mass(celestial: Celestial, P: DerivedCelestialProperties): void {
     var Me = celestial.mass;
     var kg = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.kilograms);
@@ -284,6 +334,46 @@ export class PropertyUpdaterService {
     P.mass_moon = math.round(Mmoon, DEFAULT_PRECISION);
     P.mass_kg = math.round(kg, INT_PRECISION);
   }
+
+  //Binary planets
+  massAB(celestial: Celestial, P: DerivedCelestialProperties): void {
+    var Me = celestial.mass = celestial.massA + celestial.massB;
+    var kg = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.kilograms);
+    var Mmoon = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.moons);
+    var Mjup = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.jups);
+    var Msun = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.suns);
+
+    P.mass_sun = math.round(Msun, DEFAULT_PRECISION);
+    P.mass_jup = math.round(Mjup, DEFAULT_PRECISION);
+    P.mass_moon = math.round(Mmoon, DEFAULT_PRECISION);
+    P.mass_kg = math.round(kg, INT_PRECISION);
+  }
+
+  massA(celestial: Celestial, P: DerivedCelestialProperties): void {
+    var Me = celestial.massA;
+    var kg = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.kilograms);
+    var Mmoon = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.moons);
+    var Mjup = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.jups);
+    var Msun = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.suns);
+
+    P.massA_sun = math.round(Msun, DEFAULT_PRECISION);
+    P.massA_jup = math.round(Mjup, DEFAULT_PRECISION);
+    P.massA_moon = math.round(Mmoon, DEFAULT_PRECISION);
+    P.massA_kg = math.round(kg, INT_PRECISION);
+  }
+  massB(celestial: Celestial, P: DerivedCelestialProperties): void {
+    var Me = celestial.massB;
+    var kg = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.kilograms);
+    var Mmoon = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.moons);
+    var Mjup = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.jups);
+    var Msun = this.unitConverter.convert(Me, MassUnits.earths, MassUnits.suns);
+
+    P.massB_sun = math.round(Msun, DEFAULT_PRECISION);
+    P.massB_jup = math.round(Mjup, DEFAULT_PRECISION);
+    P.massB_moon = math.round(Mmoon, DEFAULT_PRECISION);
+    P.massB_kg = math.round(kg, INT_PRECISION);
+  }
+
 
   orbitPeriod(celestial: Celestial, parent: Celestial, P: DerivedCelestialProperties): void {
     var mass_kg_parent = this.unitConverter.convert(parent.mass, MassUnits.earths, MassUnits.kilograms);
@@ -331,6 +421,34 @@ export class PropertyUpdaterService {
     P.radius_moon = math.round(Rmoon, DEFAULT_PRECISION);
   }
 
+  //Binary planets
+  radiusA(celestial: Celestial, P: DerivedCelestialProperties): void {
+    //Volumetric mean radius
+    var km = celestial.radiusA;
+    var Rmoon = this.unitConverter.convert(km, RadiusUnits.km, RadiusUnits.moons);
+    var Rearth = this.unitConverter.convert(km, RadiusUnits.km, RadiusUnits.earths);
+    var Rjup = this.unitConverter.convert(km, RadiusUnits.km, RadiusUnits.jups);
+    var Rsun = this.unitConverter.convert(km, RadiusUnits.km, RadiusUnits.suns);
+
+    P.radiusA_sun = math.round(Rsun, DEFAULT_PRECISION);
+    P.radiusA_jup = math.round(Rjup, DEFAULT_PRECISION);
+    P.radiusA_earth = math.round(Rearth, DEFAULT_PRECISION);
+    P.radiusA_moon = math.round(Rmoon, DEFAULT_PRECISION);
+  }
+  radiusB(celestial: Celestial, P: DerivedCelestialProperties): void {
+    //Volumetric mean radius
+    var km = celestial.radiusB;
+    var Rmoon = this.unitConverter.convert(km, RadiusUnits.km, RadiusUnits.moons);
+    var Rearth = this.unitConverter.convert(km, RadiusUnits.km, RadiusUnits.earths);
+    var Rjup = this.unitConverter.convert(km, RadiusUnits.km, RadiusUnits.jups);
+    var Rsun = this.unitConverter.convert(km, RadiusUnits.km, RadiusUnits.suns);
+
+    P.radiusB_sun = math.round(Rsun, DEFAULT_PRECISION);
+    P.radiusB_jup = math.round(Rjup, DEFAULT_PRECISION);
+    P.radiusB_earth = math.round(Rearth, DEFAULT_PRECISION);
+    P.radiusB_moon = math.round(Rmoon, DEFAULT_PRECISION);
+  }
+
   SMA(celestial: Celestial, P: DerivedCelestialProperties): void {
     var AU = this.unitConverter.convert(celestial.SMA, LengthUnits.gigameters, LengthUnits.AU);
     var kilometers = this.unitConverter.convert(celestial.SMA, LengthUnits.gigameters, LengthUnits.kilometers);
@@ -339,6 +457,16 @@ export class PropertyUpdaterService {
     P.SMA_AU = math.round(AU, DEFAULT_PRECISION);
     P.SMA_kilometers = math.round(kilometers, INT_PRECISION);
     P.SMA_meters = math.round(meters, INT_PRECISION);
+  }
+
+  SMAAB(celestial: Celestial, P: DerivedCelestialProperties): void {
+    var AU = this.unitConverter.convert(celestial.SMAAB, LengthUnits.gigameters, LengthUnits.AU);
+    var kilometers = this.unitConverter.convert(celestial.SMAAB, LengthUnits.gigameters, LengthUnits.kilometers);
+    var meters = this.unitConverter.convert(celestial.SMAAB, LengthUnits.gigameters, LengthUnits.meters);
+
+    P.SMAAB_AU = math.round(AU, DEFAULT_PRECISION);
+    P.SMAAB_kilometers = math.round(kilometers, INT_PRECISION);
+    P.SMAAB_meters = math.round(meters, INT_PRECISION);
   }
 
   temperatureAndLuminosity(celestial: Celestial, P: DerivedCelestialProperties): void {
@@ -385,6 +513,52 @@ export class PropertyUpdaterService {
     P.insolation_W = math.round(insolation, INT_PRECISION);
   }
 
+  //Binary
+  celestialSurfaceA(celestial: Celestial, parent: Celestial, star: Celestial, star_P: DerivedCelestialProperties, P: DerivedCelestialProperties): void {
+    var SMA_m;
+    if (celestial.type == 'planet') {
+      SMA_m = this.unitConverter.convert(celestial.SMA, LengthUnits.gigameters, LengthUnits.meters);
+    } else {
+      SMA_m = this.unitConverter.convert(parent.SMA, LengthUnits.gigameters, LengthUnits.meters);
+    }
+
+    var insolation = star_P.luminosity_W / (Math.pow(SMA_m, 2) * 4 * Math.PI);
+    var insolation_earths = insolation / Constants.earthInsolationWatts;
+
+    var temp_K = Math.pow(star_P.luminosity_W * (1 - celestial.albedo) / (16 * Math.PI * Constants.s * Math.pow(SMA_m, 2)), 0.25) + Number(celestial.greenhouse);
+    var temp_C = this.unitConverter.convertTemperature(temp_K, TemperatureUnitTypes.kelvin, TemperatureUnitTypes.celsius);
+    var temp_F = this.unitConverter.convertTemperature(temp_K, TemperatureUnitTypes.kelvin, TemperatureUnitTypes.fahrenheit);
+
+    P.surfaceTemperatureA_C = math.round(temp_C, INT_PRECISION);
+    P.surfaceTemperatureA_F = math.round(temp_F, INT_PRECISION);
+    P.surfaceTemperatureA_K = math.round(temp_K, INT_PRECISION);
+
+    P.insolation_earths = math.round(insolation_earths, DEFAULT_PRECISION);
+    P.insolation_W = math.round(insolation, INT_PRECISION);
+  }
+  celestialSurfaceB(celestial: Celestial, parent: Celestial, star: Celestial, star_P: DerivedCelestialProperties, P: DerivedCelestialProperties): void {
+    var SMA_m;
+    if (celestial.type == 'planet') {
+      SMA_m = this.unitConverter.convert(celestial.SMA, LengthUnits.gigameters, LengthUnits.meters);
+    } else {
+      SMA_m = this.unitConverter.convert(parent.SMA, LengthUnits.gigameters, LengthUnits.meters);
+    }
+
+    var insolation = star_P.luminosity_W / (Math.pow(SMA_m, 2) * 4 * Math.PI);
+    var insolation_earths = insolation / Constants.earthInsolationWatts;
+
+    var temp_K = Math.pow(star_P.luminosity_W * (1 - celestial.albedo) / (16 * Math.PI * Constants.s * Math.pow(SMA_m, 2)), 0.25) + Number(celestial.greenhouse);
+    var temp_C = this.unitConverter.convertTemperature(temp_K, TemperatureUnitTypes.kelvin, TemperatureUnitTypes.celsius);
+    var temp_F = this.unitConverter.convertTemperature(temp_K, TemperatureUnitTypes.kelvin, TemperatureUnitTypes.fahrenheit);
+
+    P.surfaceTemperatureB_C = math.round(temp_C, INT_PRECISION);
+    P.surfaceTemperatureB_F = math.round(temp_F, INT_PRECISION);
+    P.surfaceTemperatureB_K = math.round(temp_K, INT_PRECISION);
+
+    P.insolation_earths = math.round(insolation_earths, DEFAULT_PRECISION);
+    P.insolation_W = math.round(insolation, INT_PRECISION);
+  }
+
   greenhouse(celestial: Celestial, P: DerivedCelestialProperties) {
     var temp_K = celestial.greenhouse;
     var temp_C = temp_K;
@@ -392,6 +566,24 @@ export class PropertyUpdaterService {
 
     P.greenhouse_C = math.round(temp_C, LOW_PRECISION);
     P.greenhouse_F = math.round(temp_F, LOW_PRECISION);
+  }
+
+  //Binary
+  greenhouseA(celestial: Celestial, P: DerivedCelestialProperties) {
+    var temp_K = celestial.greenhouseA || 0;
+    var temp_C = temp_K;
+    var temp_F = this.unitConverter.convertTemperatureDifference(temp_K, TemperatureUnitTypes.kelvin, TemperatureUnitTypes.fahrenheit);
+
+    P.greenhouseA_C = math.round(temp_C, LOW_PRECISION);
+    P.greenhouseA_F = math.round(temp_F, LOW_PRECISION);
+  }
+  greenhouseB(celestial: Celestial, P: DerivedCelestialProperties) {
+    var temp_K = celestial.greenhouseB || 0;
+    var temp_C = temp_K;
+    var temp_F = this.unitConverter.convertTemperatureDifference(temp_K, TemperatureUnitTypes.kelvin, TemperatureUnitTypes.fahrenheit);
+
+    P.greenhouseB_C = math.round(temp_C, LOW_PRECISION);
+    P.greenhouseB_F = math.round(temp_F, LOW_PRECISION);
   }
 
 }

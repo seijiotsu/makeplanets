@@ -23,7 +23,36 @@ var CelestialSchema = new mongoose.Schema({
 
   //For planets and moons only
   albedo: { type: Number, default: 0 },
-  greenhouse: { type: Number, default: 0 }
+  greenhouse: { type: Number, default: 0 },
+
+  binary: { type: Boolean, default: false },
+
+  nameA: { type: String },
+  nameB: { type: String },
+
+  SMAAB: { type: Number},
+  eccentricityAB: { type: Number },
+  inclinationAB: { type: Number },
+  ascendingNodeAB: { type: Number },
+  argOfPeriapsisAB: { type: Number },
+
+  massA: { type: Number },
+  radiusA: { type: Number },
+  massB: { type: Number },
+  radiusB: { type: Number },
+
+  mutualTidalLock: { type: Boolean },
+
+  obliquityA: { type: Number },
+  obliquityB: { type: Number },
+
+  siderealA: { type: Number },
+  siderealB: { type: Number },
+
+  albedoA: { type: Number },
+  greenhouseA: { type: Number },
+  albedoB: { type: Number },
+  greenhouseB: { type: Number }
 });
 
 module.exports = mongoose.model('Celestial', CelestialSchema)

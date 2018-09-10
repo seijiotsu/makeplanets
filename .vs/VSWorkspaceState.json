@@ -7,10 +7,10 @@
     "\\src",
     "\\src\\app",
     "\\src\\app\\editor",
+    "\\src\\app\\home",
     "\\src\\app\\models",
-    "\\src\\app\\profile",
-    "\\src\\environments"
+    "\\src\\app\\profile"
   ],
-  "SelectedNode": "\\src\\app\\system\\system.component.ts",
+  "SelectedNode": "\\server\\models\\system.js",
   "PreviewInSolutionExplorer": false
 }

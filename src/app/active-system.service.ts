@@ -98,6 +98,7 @@ export class ActiveSystemService {
     newCelestial._id = satelliteTemplate._id;
     newCelestial.parent_id = parent._id;
     newCelestial.owner = satelliteTemplate.owner;
+    newCelestial.binary = satelliteTemplate.binary;
 
 
     if (parent.type == 'star') {
@@ -278,6 +279,7 @@ export class ActiveSystemService {
     var inclusiveSiblings: Celestial[] = this.getSiblingsInclusive(celestial);
     var all: boolean = p == 'all';
     var isStar: boolean = celestial.type == 'star';
+    var isBinary: boolean = celestial.binary;
 
     //Tides and stability update the same properties
     if (p == 'tides') p = 'stability';
@@ -309,7 +311,10 @@ export class ActiveSystemService {
     }
 
     if (all || p == 'mass' || p == 'stability') {
-      this.propertyUpdater.mass(celestial, properties);
+      if(!isBinary) this.propertyUpdater.mass(celestial, properties);
+    }
+    if (all && isBinary || p == 'massA' || p == 'massB') {
+      this.propertyUpdater.massAB(celestial, properties);
     }
 
     if (all || p == 'radius') {
@@ -317,11 +322,11 @@ export class ActiveSystemService {
     }
 
     if (all || p == 'mass' || p == 'radius' || p == 'stability') {
-      this.propertyUpdater.density(celestial, properties);
+      if (!isBinary) this.propertyUpdater.density(celestial, properties);
     }
 
     if (all || p == 'mass' || p == 'radius' || p == 'stability') {
-      this.propertyUpdater.gravity(celestial, properties);
+      if (!isBinary) this.propertyUpdater.gravity(celestial, properties);
     }
 
     if (all || p == 'SMA' || p == 'mass' || p == 'stability') {
@@ -356,6 +361,44 @@ export class ActiveSystemService {
         this.propertyUpdater.greenhouse(celestial, properties);
       }
     }
+
+    if (all || p == 'SMAAB' || p == 'massA' || p == 'massB') {
+      this.propertyUpdater.SMAAB(celestial, properties);
+    }
+
+    /*
+     * Handle binary planets
+     */
+    if (all && isBinary || p == 'massA') this.propertyUpdater.massA(celestial, properties);
+    if (all && isBinary || p == 'radiusA') this.propertyUpdater.radiusA(celestial, properties);
+    if (all && isBinary || p == 'massA' || p == 'radiusA') {
+      this.propertyUpdater.densityA(celestial, properties);
+      this.propertyUpdater.gravityA(celestial, properties);
+    }
+    if (p == 'albedoA' || p == 'greenhouseA') {
+      this.propertyUpdater.celestialSurfaceA(celestial, parent, star, this.getDerivedProperties(star), properties);
+    }
+    if (celestial.type == 'planet') {
+      if (all && isBinary || p == 'greenhouseA') {
+        this.propertyUpdater.greenhouseA(celestial, properties);
+      }
+    }
+
+    if (all && isBinary || p == 'massB') this.propertyUpdater.massB(celestial, properties);
+    if (all && isBinary || p == 'radiusB') this.propertyUpdater.radiusB(celestial, properties);
+    if (all && isBinary || p == 'massB' || p == 'radiusB') {
+      this.propertyUpdater.densityB(celestial, properties);
+      this.propertyUpdater.gravityB(celestial, properties);
+    }
+    if (p == 'albedoB' || p == 'greenhouseB') {
+      this.propertyUpdater.celestialSurfaceB(celestial, parent, star, this.getDerivedProperties(star), properties);
+    }
+    if (celestial.type == 'planet') {
+      if (all && isBinary || p == 'greenhouseB') {
+        this.propertyUpdater.greenhouseB(celestial, properties);
+      }
+    }
+
   }
 
   refreshTides(): void {

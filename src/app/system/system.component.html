@@ -117,8 +117,8 @@
 
         <clr-dg-row *ngFor="let celestial of activeSystem.getAllCelestials()">
           <clr-dg-cell>
-          <span *ngIf="celestial.type == 'moon'">({{activeSystem.getParentObject(celestial).name}}'s moon) </span>
-          <b>{{celestial.name}}</b>
+            <span *ngIf="celestial.type == 'moon'">({{activeSystem.getParentObject(celestial).name}}'s moon) </span>
+            <b>{{celestial.name}}</b>
           </clr-dg-cell>
           <clr-dg-cell *ngIf="celestial.type != 'star'">
             <span ngClass="{{activeSystem.getStability(celestial, celestial).class}}">{{activeSystem.getStability(celestial, celestial).stability}}</span>
@@ -223,22 +223,22 @@
               </clr-datagrid>
             </div>
             <!--
-  <div *ngIf="selectedTideCelestial.type == 'moon' && selectedTideCelestialParentSiblings.length > 0">
-    <h3>Parent Siblings</h3>
-    <clr-datagrid>
-      <clr-dg-column>Name</clr-dg-column>
-      <clr-dg-column>Min Strength (x Moon)</clr-dg-column>
-      <clr-dg-column>Avg Strength (x Moon)</clr-dg-column>
-      <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
+          <div *ngIf="selectedTideCelestial.type == 'moon' && selectedTideCelestialParentSiblings.length > 0">
+            <h3>Parent Siblings</h3>
+            <clr-datagrid>
+              <clr-dg-column>Name</clr-dg-column>
+              <clr-dg-column>Min Strength (x Moon)</clr-dg-column>
+              <clr-dg-column>Avg Strength (x Moon)</clr-dg-column>
+              <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
 
-      <clr-dg-row *ngFor="let parentSibling of selectedTideCelestialParentSiblings">
-        <clr-dg-cell>{{parentSibling.name}}</clr-dg-cell>
-        <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parentSibling).min}}</clr-dg-cell>
-        <clr-dg-cell><b>{{activeSystem.getTide(selectedTideCelestial, parentSibling).avg}}</b></clr-dg-cell>
-        <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parentSibling).max}}</clr-dg-cell>
-      </clr-dg-row>
-    </clr-datagrid>
-  </div>-->
+              <clr-dg-row *ngFor="let parentSibling of selectedTideCelestialParentSiblings">
+                <clr-dg-cell>{{parentSibling.name}}</clr-dg-cell>
+                <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parentSibling).min}}</clr-dg-cell>
+                <clr-dg-cell><b>{{activeSystem.getTide(selectedTideCelestial, parentSibling).avg}}</b></clr-dg-cell>
+                <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parentSibling).max}}</clr-dg-cell>
+              </clr-dg-row>
+            </clr-datagrid>
+          </div>-->
             <div *ngIf="selectedTideCelestialSiblings.length > 0">
               <h3>Siblings</h3>
               <clr-datagrid>
@@ -277,31 +277,22 @@
     </div>
 
     <!--
-    CELESTIAL VIEW
+    BINARY CELESTIAL VIEW
   -->
-    <div *ngIf="mode == Mode.CelestialView">
-
+    <div *ngIf="mode == Mode.CelestialView && selectedCelestial.binary">
       <h1>{{selectedCelestial.name}}</h1>
-      <button *ngIf="selectedCelestial.type != 'moon'"
-              type="button"
-              (click)="addSatellite(selectedCelestial)"
-              class="btn btn-primary btn-sm">
-        Add Satellite
-      </button>
       <button *ngIf="selectedCelestial.type != 'star'"
               type="button"
               (click)="deleteModalOpen = true"
               class="btn btn-danger btn-sm">
         Delete
       </button>
-      <!--
-    NAME OF THE CELESTIAL OBJECT
-    -->
+
       <div class="clr-row">
         <div class="clr-col-2">
           <form clrForm>
             <clr-input-container>
-              <label>Name</label>
+              <label>Binary System Name</label>
               <input clrInput
                      [ngModelOptions]="{standalone: true}"
                      [(ngModel)]="selectedCelestial.name"
@@ -311,10 +302,7 @@
         </div>
       </div>
 
-      <!--
-    ORBIT OF THE CELESTIAL OBJECT
-    -->
-      <h3 class="mkp-cel-section-header" *ngIf="selectedCelestial.type != 'star'">Orbital Properties</h3>
+      <h3 class="mkp-cel-section-header" *ngIf="selectedCelestial.type != 'star'">Barycenter Orbital Properties</h3>
       <div class="clr-row" *ngIf="selectedCelestial.type != 'star'">
         <div class="clr-col-6">
           <div class="mkp-cel-prop">
@@ -546,10 +534,139 @@
         </div>
       </div>
 
-      <h3 class="mkp-cel-section-header">Physical Properties</h3>
+      <h3 class="mkp-cel-section-header">Aggregate Properties</h3>
       <div class="clr-row">
         <div class="clr-col-6">
           <div class="mkp-cel-prop">
+            <div>
+              <label class="clr-control-label">Mass</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{selectedCelestial.mass | number}}
+                  </span>
+                  &nbsp;M⊕
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).mass_sun | number}}
+                  </span>
+                  &nbsp;M☉
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).mass_jup | number}}
+                  </span>
+                  &nbsp;M♃
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).mass_moon | number}}
+                  </span>
+                  &nbsp;M☽︎
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).mass_kg | number}}
+                  </span>
+                  &nbsp;kg
+                </span>
+              </div>
+            </div>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Binary planet separation</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.SMAAB"
+                           (ngModelChange)="selectedCelestialChanged('SMAAB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">gigameters (Gm)</span>
+                </div>
+              </div>
+            </form>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).SMAAB_AU | number}}
+                </span>
+                &nbsp;AU
+                <button class="mkp-noformat" (click)="alt_input_SMAAB_AU ? alt_input_SMAAB_AU = false : alt_input_SMAAB_AU = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).SMAAB_kilometers | number}}
+                </span>
+                &nbsp;km
+                <button class="mkp-noformat" (click)="alt_input_SMAAB_km ? alt_input_SMAAB_km = false : alt_input_SMAAB_km = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).SMAAB_meters | number}}
+                </span>
+                &nbsp;m
+                <button class="mkp-noformat" (click)="alt_input_SMAAB_m ? alt_input_SMAAB_m = false : alt_input_SMAAB_m = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+            </div>
+            <!--Alternative Inputs-->
+            <div class="mkp-alt-input" *ngIf="alt_input_SMAAB_AU">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-SMAAB-AU" />
+                Astronomical Units (AU)
+                <button class="btn btn-sm btn-icon" (click)="altInput('SMAAB-AU')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_SMAAB_AU = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_SMAAB_km">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-SMAAB-km" />
+                kilometers (km)
+                <button class="btn btn-sm btn-icon" (click)="altInput('SMAAB-km')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_SMAAB_km = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_SMAAB_m">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-SMAAB-m" />
+                meters (m)
+                <button class="btn btn-sm btn-icon" (click)="altInput('SMAAB-m')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_SMAAB_m = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="clr-row">
+        <div class="clr-col-6">
+          <h3 class="mkp-cel-section-header">{{selectedCelestial.nameA}} Properties</h3>
+          <div class="mkp-cel-prop">
+            <form clrForm>
+              <clr-input-container>
+                <label>Celestial A Name</label>
+                <input clrInput
+                       [ngModelOptions]="{standalone: true}"
+                       [(ngModel)]="selectedCelestial.nameA"
+                       (ngModelChange)="selectedCelestialChanged('nameA')" />
+              </clr-input-container>
+            </form>
             <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
               <div class="clr-form-control">
                 <label class="clr-control-label">Mass</label>
@@ -558,8 +675,8 @@
                     <input type="number"
                            class="clr-input"
                            [ngModelOptions]="{standalone: true}"
-                           [(ngModel)]="selectedCelestial.mass"
-                           (ngModelChange)="selectedCelestialChanged('mass')" />
+                           [(ngModel)]="selectedCelestial.massA"
+                           (ngModelChange)="selectedCelestialChanged('massA')" />
                     <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
                   </div>
                   <span class="clr-subtext">Earth masses (M⊕)</span>
@@ -569,78 +686,78 @@
             <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
               <span class="label mkp-prop">
                 <span>
-                  {{activeSystem.getDerivedProperties(selectedCelestial).mass_sun | number}}
+                  {{activeSystem.getDerivedProperties(selectedCelestial).massA_sun | number}}
                 </span>
                 &nbsp;M☉
-                <button class="mkp-noformat" (click)="alt_input_mass_sun ? alt_input_mass_sun = false : alt_input_mass_sun = true">
+                <button class="mkp-noformat" (click)="alt_input_massA_sun ? alt_input_massA_sun = false : alt_input_massA_sun = true">
                   <clr-icon shape="switch"></clr-icon>
                 </button>
               </span>
               <span class="label mkp-prop">
                 <span>
-                  {{activeSystem.getDerivedProperties(selectedCelestial).mass_jup | number}}
+                  {{activeSystem.getDerivedProperties(selectedCelestial).massA_jup | number}}
                 </span>
                 &nbsp;M♃
-                <button class="mkp-noformat" (click)="alt_input_mass_jup ? alt_input_mass_jup = false : alt_input_mass_jup = true">
+                <button class="mkp-noformat" (click)="alt_input_massA_jup ? alt_input_massA_jup = false : alt_input_massA_jup = true">
                   <clr-icon shape="switch"></clr-icon>
                 </button>
               </span>
               <span class="label mkp-prop">
                 <span>
-                  {{activeSystem.getDerivedProperties(selectedCelestial).mass_moon | number}}
+                  {{activeSystem.getDerivedProperties(selectedCelestial).massA_moon | number}}
                 </span>
                 &nbsp;M☽︎
-                <button class="mkp-noformat" (click)="alt_input_mass_moon ? alt_input_mass_moon = false : alt_input_mass_moon = true">
+                <button class="mkp-noformat" (click)="alt_input_massA_moon ? alt_input_massA_moon = false : alt_input_massA_moon = true">
                   <clr-icon shape="switch"></clr-icon>
                 </button>
               </span>
               <span class="label mkp-prop">
                 <span>
-                  {{activeSystem.getDerivedProperties(selectedCelestial).mass_kg | number}}
+                  {{activeSystem.getDerivedProperties(selectedCelestial).massA_kg | number}}
                 </span>
                 &nbsp;kg
-                <button class="mkp-noformat" (click)="alt_input_mass_kg ? alt_input_mass_kg = false : alt_input_mass_kg = true">
+                <button class="mkp-noformat" (click)="alt_input_massA_kg ? alt_input_massA_kg = false : alt_input_massA_kg = true">
                   <clr-icon shape="switch"></clr-icon>
                 </button>
               </span>
             </div>
-            <div class="mkp-alt-input" *ngIf="alt_input_mass_sun">
+            <div class="mkp-alt-input" *ngIf="alt_input_massA_sun">
               <div>
-                <input type="number" class="clr-input" id="alt-input-mass-sun" />
+                <input type="number" class="clr-input" id="alt-input-massA-sun" />
                 Sol masses (M☉)
-                <button class="btn btn-sm btn-icon" (click)="altInput('mass-sun')">Enter</button>
+                <button class="btn btn-sm btn-icon" (click)="altInput('massA-sun')">Enter</button>
               </div>
-              <button class="btn btn-link" (click)="alt_input_mass_sun = false">
+              <button class="btn btn-link" (click)="alt_input_massA_sun = false">
                 <clr-icon shape="window-close"></clr-icon>
               </button>
             </div>
-            <div class="mkp-alt-input" *ngIf="alt_input_mass_jup">
+            <div class="mkp-alt-input" *ngIf="alt_input_massA_jup">
               <div>
-                <input type="number" class="clr-input" id="alt-input-mass-jup" />
+                <input type="number" class="clr-input" id="alt-input-massA-jup" />
                 Jupiter masses (M♃)
-                <button class="btn btn-sm btn-icon" (click)="altInput('mass-jup')">Enter</button>
+                <button class="btn btn-sm btn-icon" (click)="altInput('massA-jup')">Enter</button>
               </div>
-              <button class="btn btn-link" (click)="alt_input_mass_jup = false">
+              <button class="btn btn-link" (click)="alt_input_massA_jup = false">
                 <clr-icon shape="window-close"></clr-icon>
               </button>
             </div>
-            <div class="mkp-alt-input" *ngIf="alt_input_mass_moon">
+            <div class="mkp-alt-input" *ngIf="alt_input_massA_moon">
               <div>
-                <input type="number" class="clr-input" id="alt-input-mass-moon" />
+                <input type="number" class="clr-input" id="alt-input-massA-moon" />
                 Moon masses (M☽︎)
-                <button class="btn btn-sm btn-icon" (click)="altInput('mass-moon')">Enter</button>
+                <button class="btn btn-sm btn-icon" (click)="altInput('massA-moon')">Enter</button>
               </div>
-              <button class="btn btn-link" (click)="alt_input_mass_moon = false">
+              <button class="btn btn-link" (click)="alt_input_massA_moon = false">
                 <clr-icon shape="window-close"></clr-icon>
               </button>
             </div>
-            <div class="mkp-alt-input" *ngIf="alt_input_mass_kg">
+            <div class="mkp-alt-input" *ngIf="alt_input_massA_kg">
               <div>
-                <input type="number" class="clr-input" id="alt-input-mass-kg" />
+                <input type="number" class="clr-input" id="alt-input-massA-kg" />
                 kilograms (kg)
-                <button class="btn btn-sm btn-icon" (click)="altInput('mass-kg')">Enter</button>
+                <button class="btn btn-sm btn-icon" (click)="altInput('massA-kg')">Enter</button>
               </div>
-              <button class="btn btn-link" (click)="alt_input_mass_kg = false">
+              <button class="btn btn-link" (click)="alt_input_massA_kg = false">
                 <clr-icon shape="window-close"></clr-icon>
               </button>
             </div>
@@ -652,8 +769,8 @@
                     <input type="number"
                            class="clr-input"
                            [ngModelOptions]="{standalone: true}"
-                           [(ngModel)]="selectedCelestial.radius"
-                           (ngModelChange)="selectedCelestialChanged('radius')" />
+                           [(ngModel)]="selectedCelestial.radiusA"
+                           (ngModelChange)="selectedCelestialChanged('radiusA')" />
                     <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
                   </div>
                   <span class="clr-subtext">kilometers (km)</span>
@@ -663,78 +780,78 @@
             <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
               <span class="label mkp-prop">
                 <span>
-                  {{activeSystem.getDerivedProperties(selectedCelestial).radius_sun | number}}
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radiusA_sun | number}}
                 </span>
                 &nbsp;R☉
-                <button class="mkp-noformat" (click)="alt_input_radius_sun ? alt_input_radius_sun = false : alt_input_radius_sun = true">
+                <button class="mkp-noformat" (click)="alt_input_radiusA_sun ? alt_input_radiusA_sun = false : alt_input_radiusA_sun = true">
                   <clr-icon shape="switch"></clr-icon>
                 </button>
               </span>
               <span class="label mkp-prop">
                 <span>
-                  {{activeSystem.getDerivedProperties(selectedCelestial).radius_jup | number}}
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radiusA_jup | number}}
                 </span>
                 &nbsp;R♃
-                <button class="mkp-noformat" (click)="alt_input_radius_jup ? alt_input_radius_jup = false : alt_input_radius_jup = true">
+                <button class="mkp-noformat" (click)="alt_input_radiusA_jup ? alt_input_radiusA_jup = false : alt_input_radiusA_jup = true">
                   <clr-icon shape="switch"></clr-icon>
                 </button>
               </span>
               <span class="label mkp-prop">
                 <span>
-                  {{activeSystem.getDerivedProperties(selectedCelestial).radius_earth | number}}
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radiusA_earth | number}}
                 </span>
                 &nbsp;R⊕
-                <button class="mkp-noformat" (click)="alt_input_radius_earth ? alt_input_radius_earth = false : alt_input_radius_earth = true">
+                <button class="mkp-noformat" (click)="alt_input_radiusA_earth ? alt_input_radiusA_earth = false : alt_input_radiusA_earth = true">
                   <clr-icon shape="switch"></clr-icon>
                 </button>
               </span>
               <span class="label mkp-prop">
                 <span>
-                  {{activeSystem.getDerivedProperties(selectedCelestial).radius_moon | number}}
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radiusA_moon | number}}
                 </span>
                 &nbsp;R☽︎
-                <button class="mkp-noformat" (click)="alt_input_radius_moon ? alt_input_radius_moon = false : alt_input_radius_moon = true">
+                <button class="mkp-noformat" (click)="alt_input_radiusA_moon ? alt_input_radiusA_moon = false : alt_input_radiusA_moon = true">
                   <clr-icon shape="switch"></clr-icon>
                 </button>
               </span>
             </div>
-            <div class="mkp-alt-input" *ngIf="alt_input_radius_sun">
+            <div class="mkp-alt-input" *ngIf="alt_input_radiusA_sun">
               <div>
-                <input type="number" class="clr-input" id="alt-input-radius-sun" />
+                <input type="number" class="clr-input" id="alt-input-radiusA-sun" />
                 Sol radii (R☉)
-                <button class="btn btn-sm btn-icon" (click)="altInput('radius-sun')">Enter</button>
+                <button class="btn btn-sm btn-icon" (click)="altInput('radiusA-sun')">Enter</button>
               </div>
-              <button class="btn btn-link" (click)="alt_input_radius_sun = false">
+              <button class="btn btn-link" (click)="alt_input_radiusA_sun = false">
                 <clr-icon shape="window-close"></clr-icon>
               </button>
             </div>
-            <div class="mkp-alt-input" *ngIf="alt_input_radius_jup">
+            <div class="mkp-alt-input" *ngIf="alt_input_radiusA_jup">
               <div>
-                <input type="number" class="clr-input" id="alt-input-radius-jup" />
+                <input type="number" class="clr-input" id="alt-input-radiusA-jup" />
                 Jupiter radii (R♃)
-                <button class="btn btn-sm btn-icon" (click)="altInput('radius-jup')">Enter</button>
+                <button class="btn btn-sm btn-icon" (click)="altInput('radiusA-jup')">Enter</button>
               </div>
-              <button class="btn btn-link" (click)="alt_input_radius_jup = false">
+              <button class="btn btn-link" (click)="alt_input_radiusA_jup = false">
                 <clr-icon shape="window-close"></clr-icon>
               </button>
             </div>
-            <div class="mkp-alt-input" *ngIf="alt_input_radius_earth">
+            <div class="mkp-alt-input" *ngIf="alt_input_radiusA_earth">
               <div>
-                <input type="number" class="clr-input" id="alt-input-radius-earth" />
+                <input type="number" class="clr-input" id="alt-input-radiusA-earth" />
                 Earth radii (R⊕)
-                <button class="btn btn-sm btn-icon" (click)="altInput('radius-earth')">Enter</button>
+                <button class="btn btn-sm btn-icon" (click)="altInput('radiusA-earth')">Enter</button>
               </div>
-              <button class="btn btn-link" (click)="alt_input_radius_earth = false">
+              <button class="btn btn-link" (click)="alt_input_radiusA_earth = false">
                 <clr-icon shape="window-close"></clr-icon>
               </button>
             </div>
-            <div class="mkp-alt-input" *ngIf="alt_input_radius_moon">
+            <div class="mkp-alt-input" *ngIf="alt_input_radiusA_moon">
               <div>
-                <input type="number" class="clr-input" id="alt-input-radius-moon" />
+                <input type="number" class="clr-input" id="alt-input-radiusA-moon" />
                 Moon radii (R☽︎)
-                <button class="btn btn-sm btn-icon" (click)="altInput('radius-moon')">Enter</button>
+                <button class="btn btn-sm btn-icon" (click)="altInput('radiusA-moon')">Enter</button>
               </div>
-              <button class="btn btn-link" (click)="alt_input_radius_moon = false">
+              <button class="btn btn-link" (click)="alt_input_radiusA_moon = false">
                 <clr-icon shape="window-close"></clr-icon>
               </button>
             </div>
@@ -746,15 +863,15 @@
                     <input type="number"
                            class="clr-input"
                            [ngModelOptions]="{standalone: true}"
-                           [(ngModel)]="selectedCelestial.obliquity"
-                           (ngModelChange)="selectedCelestialChanged('obliquity')" />
+                           [(ngModel)]="selectedCelestial.obliquityA"
+                           (ngModelChange)="selectedCelestialChanged('obliquityA')" />
                     <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
                   </div>
                   <span class="clr-subtext">°</span>
                 </div>
               </div>
             </form>
-            <form class="clr-form clr-form-compact no-padding">
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin-2">
               <div class="clr-form-control">
                 <label class="clr-control-label">Sidereal Day</label>
                 <div class="clr-control-container">
@@ -762,122 +879,52 @@
                     <input type="number"
                            class="clr-input"
                            [ngModelOptions]="{standalone: true}"
-                           [(ngModel)]="selectedCelestial.sidereal"
-                           (ngModelChange)="selectedCelestialChanged('sidereal')" />
+                           [(ngModel)]="selectedCelestial.siderealA"
+                           (ngModelChange)="selectedCelestialChanged('siderealA')" />
                     <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
                   </div>
                   <span class="clr-subtext"> hrs</span>
                 </div>
               </div>
             </form>
-          </div>
-        </div>
-        <div class="clr-col-6">
-          <div class="mkp-cel-prop">
-            <div>
-              <label class="clr-control-label">Density</label>
-              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).density_kgm3 | number}}
-                  </span>
-                  &nbsp;kg/m³
+            <label class="clr-control-label">Density</label>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).densityA_kgm3 | number}}
                 </span>
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).density_gcm3 | number}}
-                  </span>
-                  &nbsp;g/cm³
+                &nbsp;kg/m³
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).densityA_gcm3 | number}}
                 </span>
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).density_earth | number}}
-                  </span>
-                  &nbsp;D⊕
+                &nbsp;g/cm³
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).densityA_earth | number}}
                 </span>
-              </div>
+                &nbsp;D⊕
+              </span>
             </div>
             <div>
               <label class="clr-control-label">Gravity</label>
               <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).gravity_ms2 | number}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).gravityA_ms2 | number}}
                   </span>
                   &nbsp;m/s²
                 </span>
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).gravity_g | number}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).gravityA_g | number}}
                   </span>
                   &nbsp;g
                 </span>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <h3 *ngIf="selectedCelestial.type == 'star'"
-          class="mkp-cel-section-header">
-        Stellar Properties
-      </h3>
-      <div class="clr-row" *ngIf="selectedCelestial.type == 'star'">
-        <div class="clr-col-6">
-          <div class="mkp-cel-prop">
-            <div>
-              <label class="clr-control-label">Luminosity</label>
-              <p class="p5 no-padding no-margin">Luminosity varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate luminosities.</p>
-              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).luminosity_W | number}}
-                  </span>
-                  &nbsp;W
-                </span>
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).luminosity_sun | number}}
-                  </span>
-                  &nbsp;suns
-                </span>
-              </div>
-            </div>
-            <div>
-              <label class="clr-control-label">Surface Temperature</label>
-              <p class="p5 no-padding no-margin">Temperature varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate temperatures.</p>
-              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_K | number}}
-                  </span>
-                  &nbsp;K
-                </span>
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_C | number}}
-                  </span>
-                  &nbsp;°C
-                </span>
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_F | number}}
-                  </span>
-                  &nbsp;°F
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <h3 *ngIf="selectedCelestial.type != 'star'"
-          class="mkp-cel-section-header">
-        Surface Properties
-      </h3>
-      <div class="clr-row" *ngIf="selectedCelestial.type != 'star'">
-        <div class="clr-col-6">
-          <div class="mkp-cel-prop">
             <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
               <div class="clr-form-control">
                 <label class="clr-control-label">Albedo</label>
@@ -886,8 +933,8 @@
                     <input type="number"
                            class="clr-input"
                            [ngModelOptions]="{standalone: true}"
-                           [(ngModel)]="selectedCelestial.albedo"
-                           (ngModelChange)="selectedCelestialChanged('albedo')" />
+                           [(ngModel)]="selectedCelestial.albedoA"
+                           (ngModelChange)="selectedCelestialChanged('albedoA')" />
                     <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
                   </div>
                   <span class="clr-subtext"></span>
@@ -906,8 +953,8 @@
                     <input type="number"
                            class="clr-input"
                            [ngModelOptions]="{standalone: true}"
-                           [(ngModel)]="selectedCelestial.greenhouse"
-                           (ngModelChange)="selectedCelestialChanged('greenhouse')" />
+                           [(ngModel)]="selectedCelestial.greenhouseA"
+                           (ngModelChange)="selectedCelestialChanged('greenhouseA')" />
                     <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
                   </div>
                   <span class="clr-subtext">Kelvin (K)</span>
@@ -918,47 +965,29 @@
             <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
               <span class="label mkp-prop">
                 <span>
-                  {{activeSystem.getDerivedProperties(selectedCelestial).greenhouse_C | number}}
+                  {{activeSystem.getDerivedProperties(selectedCelestial).greenhouseA_C | number}}
                 </span>
                 &nbsp;C
               </span>
               <span class="label mkp-prop">
                 <span>
-                  {{activeSystem.getDerivedProperties(selectedCelestial).greenhouse_F | number}}
+                  {{activeSystem.getDerivedProperties(selectedCelestial).greenhouseA_F | number}}
                 </span>
                 &nbsp;F
-                <button class="mkp-noformat" (click)="alt_input_greenhouse_F ? alt_input_greenhouse_F = false : alt_input_greenhouse_F = true">
+                <button class="mkp-noformat" (click)="alt_input_greenhouseA_F ? alt_input_greenhouseA_F = false : alt_input_greenhouseA_F = true">
                   <clr-icon shape="switch"></clr-icon>
                 </button>
               </span>
             </div>
-            <div class="mkp-alt-input" *ngIf="alt_input_greenhouse_F">
+            <div class="mkp-alt-input" *ngIf="alt_input_greenhouseA_F">
               <div>
-                <input type="number" class="clr-input" id="alt-input-greenhouse-F" />
+                <input type="number" class="clr-input" id="alt-input-greenhouseA-F" />
                 Fahrenheit (F)
-                <button class="btn btn-sm btn-icon" (click)="altInput('greenhouse-F')">Enter</button>
+                <button class="btn btn-sm btn-icon" (click)="altInput('greenhouseA-F')">Enter</button>
               </div>
-              <button class="btn btn-link" (click)="alt_input_greenhouse_F = false">
+              <button class="btn btn-link" (click)="alt_input_greenhouseA_F = false">
                 <clr-icon shape="window-close"></clr-icon>
               </button>
-            </div>
-            <div>
-              <label class="clr-control-label">Insolation</label>
-              <p class="p5 no-padding no-margin">Insolation varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate insolation.</p>
-              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).insolation_W | number}}
-                  </span>
-                  &nbsp;W
-                </span>
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).insolation_earths | number}}
-                  </span>
-                  &nbsp;earths
-                </span>
-              </div>
             </div>
             <div>
               <label class="clr-control-label">Surface Temperature</label>
@@ -966,19 +995,379 @@
               <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_K | number}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperatureA_K | number}}
                   </span>
                   &nbsp;K
                 </span>
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_C | number}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperatureA_C | number}}
                   </span>
                   &nbsp;°C
                 </span>
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_F | number}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperatureA_F | number}}
+                  </span>
+                  &nbsp;°F
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="clr-col-6">
+          <h3 class="mkp-cel-section-header">{{selectedCelestial.nameB}} Properties</h3>
+          <div class="mkp-cel-prop">
+            <form clrForm>
+              <clr-input-container>
+                <label>Celestial B Name</label>
+                <input clrInput
+                       [ngModelOptions]="{standalone: true}"
+                       [(ngModel)]="selectedCelestial.nameB"
+                       (ngModelChange)="selectedCelestialChanged('nameB')" />
+              </clr-input-container>
+            </form>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Mass</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.massB"
+                           (ngModelChange)="selectedCelestialChanged('massB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">Earth masses (M⊕)</span>
+                </div>
+              </div>
+            </form>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).massB_sun | number}}
+                </span>
+                &nbsp;M☉
+                <button class="mkp-noformat" (click)="alt_input_massB_sun ? alt_input_massB_sun = false : alt_input_massB_sun = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).massB_jup | number}}
+                </span>
+                &nbsp;M♃
+                <button class="mkp-noformat" (click)="alt_input_massB_jup ? alt_input_massB_jup = false : alt_input_massB_jup = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).massB_moon | number}}
+                </span>
+                &nbsp;M☽︎
+                <button class="mkp-noformat" (click)="alt_input_massB_moon ? alt_input_massB_moon = false : alt_input_massB_moon = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).massB_kg | number}}
+                </span>
+                &nbsp;kg
+                <button class="mkp-noformat" (click)="alt_input_massB_kg ? alt_input_massB_kg = false : alt_input_massB_kg = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_massB_sun">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-massB-sun" />
+                Sol masses (M☉)
+                <button class="btn btn-sm btn-icon" (click)="altInput('massB-sun')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_massB_sun = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_massB_jup">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-massB-jup" />
+                Jupiter masses (M♃)
+                <button class="btn btn-sm btn-icon" (click)="altInput('massB-jup')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_massB_jup = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_massB_moon">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-massB-moon" />
+                Moon masses (M☽︎)
+                <button class="btn btn-sm btn-icon" (click)="altInput('massB-moon')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_massB_moon = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_massB_kg">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-massB-kg" />
+                kilograms (kg)
+                <button class="btn btn-sm btn-icon" (click)="altInput('massB-kg')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_massB_kg = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Radius</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.radiusB"
+                           (ngModelChange)="selectedCelestialChanged('radiusB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">kilometers (km)</span>
+                </div>
+              </div>
+            </form>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radiusB_sun | number}}
+                </span>
+                &nbsp;R☉
+                <button class="mkp-noformat" (click)="alt_input_radiusB_sun ? alt_input_radiusB_sun = false : alt_input_radiusB_sun = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radiusB_jup | number}}
+                </span>
+                &nbsp;R♃
+                <button class="mkp-noformat" (click)="alt_input_radiusB_jup ? alt_input_radiusB_jup = false : alt_input_radiusB_jup = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radiusB_earth | number}}
+                </span>
+                &nbsp;R⊕
+                <button class="mkp-noformat" (click)="alt_input_radiusB_earth ? alt_input_radiusB_earth = false : alt_input_radiusB_earth = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).radiusB_moon | number}}
+                </span>
+                &nbsp;R☽︎
+                <button class="mkp-noformat" (click)="alt_input_radiusB_moon ? alt_input_radiusB_moon = false : alt_input_radiusB_moon = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_radiusB_sun">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-radiusB-sun" />
+                Sol radii (R☉)
+                <button class="btn btn-sm btn-icon" (click)="altInput('radiusB-sun')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_radiusB_sun = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_radiusB_jup">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-radiusB-jup" />
+                Jupiter radii (R♃)
+                <button class="btn btn-sm btn-icon" (click)="altInput('radiusB-jup')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_radiusB_jup = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_radiusB_earth">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-radiusB-earth" />
+                Earth radii (R⊕)
+                <button class="btn btn-sm btn-icon" (click)="altInput('radiusB-earth')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_radiusB_earth = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_radiusB_moon">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-radiusB-moon" />
+                Moon radii (R☽︎)
+                <button class="btn btn-sm btn-icon" (click)="altInput('radiusB-moon')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_radiusB_moon = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <form class="clr-form clr-form-compact no-padding">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Obliquity</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.obliquityB"
+                           (ngModelChange)="selectedCelestialChanged('obliquityB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">°</span>
+                </div>
+              </div>
+            </form>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin-2">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Sidereal Day</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.siderealB"
+                           (ngModelChange)="selectedCelestialChanged('siderealB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext"> hrs</span>
+                </div>
+              </div>
+            </form>
+            <label class="clr-control-label">Density</label>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).densityB_kgm3 | number}}
+                </span>
+                &nbsp;kg/m³
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).densityB_gcm3 | number}}
+                </span>
+                &nbsp;g/cm³
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).densityB_earth | number}}
+                </span>
+                &nbsp;D⊕
+              </span>
+            </div>
+            <div>
+              <label class="clr-control-label">Gravity</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).gravityB_ms2 | number}}
+                  </span>
+                  &nbsp;m/s²
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).gravityB_g | number}}
+                  </span>
+                  &nbsp;g
+                </span>
+              </div>
+            </div>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Albedo</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.albedoB"
+                           (ngModelChange)="selectedCelestialChanged('albedoB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext"></span>
+                </div>
+              </div>
+            </form>
+            <p class="p5 no-padding no-margin">
+              The albedo is the ratio of light reflected to light absorbed for a given body.
+              Around .1 for rocky bodies, .3 for Earth-like planets, and .5 for gas planets.
+            </p>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Temperature Adjustment</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.greenhouseB"
+                           (ngModelChange)="selectedCelestialChanged('greenhouseB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">Kelvin (K)</span>
+                </div>
+              </div>
+            </form>
+            <p class="p5 no-padding no-margin">Greenhouse gasses, etc. Earth's greenhouse temperature adjustment is ~33K.</p>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).greenhouseB_C | number}}
+                </span>
+                &nbsp;C
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).greenhouseB_F | number}}
+                </span>
+                &nbsp;F
+                <button class="mkp-noformat" (click)="alt_input_greenhouseB_F ? alt_input_greenhouseB_F = false : alt_input_greenhouseB_F = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_greenhouseB_F">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-greenhouseB-F" />
+                Fahrenheit (F)
+                <button class="btn btn-sm btn-icon" (click)="altInput('greenhouseB-F')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_greenhouseB_F = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <div>
+              <label class="clr-control-label">Surface Temperature</label>
+              <p class="p5 no-padding no-margin">Temperature varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate temperatures.</p>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfacetemperatureB_K | number}}
+                  </span>
+                  &nbsp;K
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfacetemperatureB_C | number}}
+                  </span>
+                  &nbsp;°C
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).surfacetemperatureB_F | number}}
                   </span>
                   &nbsp;°F
                 </span>
@@ -988,144 +1377,868 @@
         </div>
       </div>
 
-      <h3 class="mkp-cel-section-header">System</h3>
-      <div class="clr-row">
-        <div class="clr-col-6">
-          <div class="mkp-cel-prop" *ngIf="selectedCelestial.type != 'star'">
-
-            <div>
-              <label class="clr-control-label">Hill sphere</label>
-              <p class="p5 no-padding no-margin">Satellites are generally stable if they orbit within half of the Hill sphere's outer limit.</p>
-              <div class="mkp-cel-prop-unit-spans">
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_AU | number}}
-                  </span>
-                  &nbsp;AU
-                </span>
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_Gm | number}}
-                  </span>
-                  &nbsp;Gm
-                </span>
-                <span class="label mkp-prop">
-                  <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_km | number}}
-                  </span>
-                  &nbsp;km
-                </span>
+          </div>
+          <!--
+        SINGULAR CELESTIAL VIEW
+      -->
+          <div *ngIf="mode == Mode.CelestialView && !selectedCelestial.binary">
+            <h1>{{selectedCelestial.name}}</h1>
+            <button *ngIf="selectedCelestial.type == 'planet'"
+                    type="button"
+                    (click)="addSatellite(selectedCelestial)"
+                    class="btn btn-primary btn-sm">
+              Add Satellite
+            </button>
+            <button *ngIf="selectedCelestial.type == 'star'"
+                    type="button"
+                    (click)="addSatellite(selectedCelestial)"
+                    class="btn btn-primary btn-sm">
+              Add Planet
+            </button>
+            <button *ngIf="selectedCelestial.type == 'star'"
+                    type="button"
+                    (click)="addBinaryPlanet(selectedCelestial)"
+                    class="btn btn-primary btn-sm">
+              Add Binary Planet
+            </button>
+            <button *ngIf="selectedCelestial.type != 'star'"
+                    type="button"
+                    (click)="deleteModalOpen = true"
+                    class="btn btn-danger btn-sm">
+              Delete
+            </button>
+            <!--
+        NAME OF THE CELESTIAL OBJECT
+        -->
+            <div class="clr-row">
+              <div class="clr-col-2">
+                <form clrForm>
+                  <clr-input-container>
+                    <label>Name</label>
+                    <input clrInput
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.name"
+                           (ngModelChange)="selectedCelestialChanged('name')" />
+                  </clr-input-container>
+                </form>
               </div>
             </div>
+
+            <!--
+        ORBIT OF THE CELESTIAL OBJECT
+        -->
+            <h3 class="mkp-cel-section-header" *ngIf="selectedCelestial.type != 'star'">Orbital Properties</h3>
+            <div class="clr-row" *ngIf="selectedCelestial.type != 'star'">
+              <div class="clr-col-6">
+                <div class="mkp-cel-prop">
+                  <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Semi-major axis</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="selectedCelestial.SMA"
+                                 (ngModelChange)="selectedCelestialChanged('SMA')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext">gigameters (Gm)</span>
+                      </div>
+                    </div>
+                  </form>
+                  <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).SMA_AU | number}}
+                      </span>
+                      &nbsp;AU
+                      <button class="mkp-noformat" (click)="alt_input_SMA_AU ? alt_input_SMA_AU = false : alt_input_SMA_AU = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).SMA_kilometers | number}}
+                      </span>
+                      &nbsp;km
+                      <button class="mkp-noformat" (click)="alt_input_SMA_km ? alt_input_SMA_km = false : alt_input_SMA_km = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).SMA_meters | number}}
+                      </span>
+                      &nbsp;m
+                      <button class="mkp-noformat" (click)="alt_input_SMA_m ? alt_input_SMA_m = false : alt_input_SMA_m = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                  </div>
+                  <!--Alternative Inputs-->
+                  <div class="mkp-alt-input" *ngIf="alt_input_SMA_AU">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-SMA-AU" />
+                      Astronomical Units (AU)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('SMA-AU')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_SMA_AU = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_SMA_km">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-SMA-km" />
+                      kilometers (km)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('SMA-km')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_SMA_km = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_SMA_m">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-SMA-m" />
+                      meters (m)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('SMA-m')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_SMA_m = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+
+                  <form class="clr-form clr-form-compact no-padding">
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Eccentricity</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="selectedCelestial.eccentricity"
+                                 (ngModelChange)="selectedCelestialChanged('eccentricity')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                  <form class="clr-form clr-form-compact no-padding">
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Inclination</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="selectedCelestial.inclination"
+                                 (ngModelChange)="selectedCelestialChanged('inclination')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext">°</span>
+                      </div>
+                    </div>
+                  </form>
+                  <form class="clr-form clr-form-compact no-padding">
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Ascending Node</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="selectedCelestial.ascendingNode"
+                                 (ngModelChange)="selectedCelestialChanged('ascendingNode')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext">°</span>
+                      </div>
+                    </div>
+                  </form>
+                  <form class="clr-form clr-form-compact no-padding">
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Arg. of Periapsis</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="selectedCelestial.argOfPeriapsis"
+                                 (ngModelChange)="selectedCelestialChanged('argOfPeriapsis')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext">°</span>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div class="clr-col-6">
+                <div class="mkp-cel-prop">
+                  <div>
+                    <label class="clr-control-label">Apoapsis</label>
+                    <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).apoapsis_AU | number}}
+                        </span>
+                        &nbsp;AU
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).apoapsis_kilometers | number}}
+                        </span>
+                        &nbsp;km
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="clr-control-label">Periapsis</label>
+                    <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).periapsis_AU | number}}
+                        </span>
+                        &nbsp;AU
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).periapsis_kilometers | number}}
+                        </span>
+                        &nbsp;km
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="clr-control-label">Orbit Period</label>
+                    <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_concat}}
+                        </span>
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_years | number}}
+                        </span>
+                        &nbsp;years
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_days | number}}
+                        </span>
+                        &nbsp;days
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_hours | number}}
+                        </span>
+                        &nbsp;hours
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_minutes | number}}
+                        </span>
+                        &nbsp;minutes
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_seconds | number}}
+                        </span>
+                        &nbsp;seconds
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_localDays | number}}
+                        </span>
+                        &nbsp;local days
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="mkp-cel-section-header">Physical Properties</h3>
+            <div class="clr-row">
+              <div class="clr-col-6">
+                <div class="mkp-cel-prop">
+                  <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Mass</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="selectedCelestial.mass"
+                                 (ngModelChange)="selectedCelestialChanged('mass')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext">Earth masses (M⊕)</span>
+                      </div>
+                    </div>
+                  </form>
+                  <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).mass_sun | number}}
+                      </span>
+                      &nbsp;M☉
+                      <button class="mkp-noformat" (click)="alt_input_mass_sun ? alt_input_mass_sun = false : alt_input_mass_sun = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).mass_jup | number}}
+                      </span>
+                      &nbsp;M♃
+                      <button class="mkp-noformat" (click)="alt_input_mass_jup ? alt_input_mass_jup = false : alt_input_mass_jup = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).mass_moon | number}}
+                      </span>
+                      &nbsp;M☽︎
+                      <button class="mkp-noformat" (click)="alt_input_mass_moon ? alt_input_mass_moon = false : alt_input_mass_moon = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).mass_kg | number}}
+                      </span>
+                      &nbsp;kg
+                      <button class="mkp-noformat" (click)="alt_input_mass_kg ? alt_input_mass_kg = false : alt_input_mass_kg = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_mass_sun">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-mass-sun" />
+                      Sol masses (M☉)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('mass-sun')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_mass_sun = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_mass_jup">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-mass-jup" />
+                      Jupiter masses (M♃)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('mass-jup')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_mass_jup = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_mass_moon">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-mass-moon" />
+                      Moon masses (M☽︎)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('mass-moon')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_mass_moon = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_mass_kg">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-mass-kg" />
+                      kilograms (kg)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('mass-kg')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_mass_kg = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Radius</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="selectedCelestial.radius"
+                                 (ngModelChange)="selectedCelestialChanged('radius')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext">kilometers (km)</span>
+                      </div>
+                    </div>
+                  </form>
+                  <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).radius_sun | number}}
+                      </span>
+                      &nbsp;R☉
+                      <button class="mkp-noformat" (click)="alt_input_radius_sun ? alt_input_radius_sun = false : alt_input_radius_sun = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).radius_jup | number}}
+                      </span>
+                      &nbsp;R♃
+                      <button class="mkp-noformat" (click)="alt_input_radius_jup ? alt_input_radius_jup = false : alt_input_radius_jup = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).radius_earth | number}}
+                      </span>
+                      &nbsp;R⊕
+                      <button class="mkp-noformat" (click)="alt_input_radius_earth ? alt_input_radius_earth = false : alt_input_radius_earth = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).radius_moon | number}}
+                      </span>
+                      &nbsp;R☽︎
+                      <button class="mkp-noformat" (click)="alt_input_radius_moon ? alt_input_radius_moon = false : alt_input_radius_moon = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_radius_sun">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-radius-sun" />
+                      Sol radii (R☉)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('radius-sun')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_radius_sun = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_radius_jup">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-radius-jup" />
+                      Jupiter radii (R♃)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('radius-jup')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_radius_jup = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_radius_earth">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-radius-earth" />
+                      Earth radii (R⊕)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('radius-earth')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_radius_earth = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_radius_moon">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-radius-moon" />
+                      Moon radii (R☽︎)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('radius-moon')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_radius_moon = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <form class="clr-form clr-form-compact no-padding">
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Obliquity</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="selectedCelestial.obliquity"
+                                 (ngModelChange)="selectedCelestialChanged('obliquity')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext">°</span>
+                      </div>
+                    </div>
+                  </form>
+                  <form class="clr-form clr-form-compact no-padding">
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Sidereal Day</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="selectedCelestial.sidereal"
+                                 (ngModelChange)="selectedCelestialChanged('sidereal')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext"> hrs</span>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              <div class="clr-col-6">
+                <div class="mkp-cel-prop">
+                  <div>
+                    <label class="clr-control-label">Density</label>
+                    <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).density_kgm3 | number}}
+                        </span>
+                        &nbsp;kg/m³
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).density_gcm3 | number}}
+                        </span>
+                        &nbsp;g/cm³
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).density_earth | number}}
+                        </span>
+                        &nbsp;D⊕
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="clr-control-label">Gravity</label>
+                    <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).gravity_ms2 | number}}
+                        </span>
+                        &nbsp;m/s²
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).gravity_g | number}}
+                        </span>
+                        &nbsp;g
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h3 *ngIf="selectedCelestial.type == 'star'"
+                class="mkp-cel-section-header">
+              Stellar Properties
+            </h3>
+            <div class="clr-row" *ngIf="selectedCelestial.type == 'star'">
+              <div class="clr-col-6">
+                <div class="mkp-cel-prop">
+                  <div>
+                    <label class="clr-control-label">Luminosity</label>
+                    <p class="p5 no-padding no-margin">Luminosity varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate luminosities.</p>
+                    <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).luminosity_W | number}}
+                        </span>
+                        &nbsp;W
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).luminosity_sun | number}}
+                        </span>
+                        &nbsp;suns
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="clr-control-label">Surface Temperature</label>
+                    <p class="p5 no-padding no-margin">Temperature varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate temperatures.</p>
+                    <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_K | number}}
+                        </span>
+                        &nbsp;K
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_C | number}}
+                        </span>
+                        &nbsp;°C
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_F | number}}
+                        </span>
+                        &nbsp;°F
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h3 *ngIf="selectedCelestial.type != 'star'"
+                class="mkp-cel-section-header">
+              Surface Properties
+            </h3>
+            <div class="clr-row" *ngIf="selectedCelestial.type != 'star'">
+              <div class="clr-col-6">
+                <div class="mkp-cel-prop">
+                  <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Albedo</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="selectedCelestial.albedo"
+                                 (ngModelChange)="selectedCelestialChanged('albedo')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext"></span>
+                      </div>
+                    </div>
+                  </form>
+                  <p class="p5 no-padding no-margin">
+                    The albedo is the ratio of light reflected to light absorbed for a given body.
+                    Around .1 for rocky bodies, .3 for Earth-like planets, and .5 for gas planets.
+                  </p>
+                  <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Temperature Adjustment</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [(ngModel)]="selectedCelestial.greenhouse"
+                                 (ngModelChange)="selectedCelestialChanged('greenhouse')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext">Kelvin (K)</span>
+                      </div>
+                    </div>
+                  </form>
+                  <p class="p5 no-padding no-margin">Greenhouse gasses, etc. Earth's greenhouse temperature adjustment is ~33K.</p>
+                  <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).greenhouse_C | number}}
+                      </span>
+                      &nbsp;C
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).greenhouse_F | number}}
+                      </span>
+                      &nbsp;F
+                      <button class="mkp-noformat" (click)="alt_input_greenhouse_F ? alt_input_greenhouse_F = false : alt_input_greenhouse_F = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_greenhouse_F">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-greenhouse-F" />
+                      Fahrenheit (F)
+                      <button class="btn btn-sm btn-icon" (click)="altInput('greenhouse-F')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_greenhouse_F = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <div>
+                    <label class="clr-control-label">Insolation</label>
+                    <p class="p5 no-padding no-margin">Insolation varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate insolation.</p>
+                    <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).insolation_W | number}}
+                        </span>
+                        &nbsp;W
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).insolation_earths | number}}
+                        </span>
+                        &nbsp;earths
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="clr-control-label">Surface Temperature</label>
+                    <p class="p5 no-padding no-margin">Temperature varies with star age; simulate in Universe Sandbox 2 or similar program for more accurate temperatures.</p>
+                    <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_K | number}}
+                        </span>
+                        &nbsp;K
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_C | number}}
+                        </span>
+                        &nbsp;°C
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).surfaceTemperature_F | number}}
+                        </span>
+                        &nbsp;°F
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="mkp-cel-section-header">System</h3>
+            <div class="clr-row">
+              <div class="clr-col-6">
+                <div class="mkp-cel-prop" *ngIf="selectedCelestial.type != 'star'">
+
+                  <div>
+                    <label class="clr-control-label">Hill sphere</label>
+                    <p class="p5 no-padding no-margin">Satellites are generally stable if they orbit within half of the Hill sphere's outer limit.</p>
+                    <div class="mkp-cel-prop-unit-spans">
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_AU | number}}
+                        </span>
+                        &nbsp;AU
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_Gm | number}}
+                        </span>
+                        &nbsp;Gm
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_km | number}}
+                        </span>
+                        &nbsp;km
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+            <!--
+          <div class="mkp-cel-system-container">
+          <clr-tabs>
+            <clr-tab>
+              <button clrTabLink id="link1">Properties</button>
+              <clr-tab-content id="content1" *clrIfActive="true">
+                <div class="clr-row">
+                  <div class="clr-col-6">
+                  </div>
+                </div>
+              </clr-tab-content>
+            </clr-tab>
+          </clr-tabs>
+        </div>
+        -->
 
           </div>
         </div>
+        <nav class="sidenav">
+          <section class="sidenav-content">
+            <section class="nav-group">
+              <label>Main</label>
+              <ul class="nav-list">
+                <li>
+                  <a class="nav-link"
+                     (click)="setMode(Mode.HomeView)"
+                     [ngClass]="{'mkp-selected': mode == Mode.HomeView}">Home</a>
+                </li>
+                <li>
+                  <a class="nav-link"
+                     (click)="setMode(Mode.ImportExportView)"
+                     [ngClass]="{'mkp-selected': mode == Mode.ImportExportView}">Import / Export</a>
+                </li>
+                <li>
+                  <a class="nav-link"
+                     (click)="setMode(Mode.Advanced)"
+                     [ngClass]="{'mkp-selected': mode == Mode.Advanced}">Advanced</a>
+                </li>
+              </ul>
+            </section>
+            <section class="nav-group">
+              <label>Tools</label>
+              <ul class="nav-list">
+                <li>
+                  <a class="nav-link"
+                     (click)="setMode(Mode.StabilityView)"
+                     [ngClass]="{'mkp-selected': mode == Mode.StabilityView}">Stability Table</a>
+                </li>
+                <li>
+                  <a class="nav-link"
+                     (click)="setMode(Mode.AngularDiameterView)"
+                     [ngClass]="{'mkp-selected': mode == Mode.AngularDiameterView}">Angular Diameter Viewer</a>
+                </li>
+                <li>
+                  <a class="nav-link"
+                     (click)="setMode(Mode.Tides)"
+                     [ngClass]="{'mkp-selected': mode == Mode.Tides}">Tidal Strength</a>
+                </li>
+              </ul>
+            </section>
+            <section class="nav-group">
+              <label>Celestial Objects</label>
+              <ul class="celestial-nav-list">
+                <clr-tree-node *ngFor="let star_cto of activeSystem.getCelestialTree()">
+                  <!--<clr-icon [attr.shape]="directory.icon"></clr-icon>-->
+                  <button class="clr-treenode-link"
+                          (click)="select(star_cto.celestial)"
+                          [ngClass]="{'mkp-selected': star_cto.celestial === selectedCelestial && mode == Mode.CelestialView}">
+                    {{star_cto.celestial.name}}
+                  </button>
+                  <ng-template *ngIf="star_cto.children.length != 0" [clrIfExpanded]="true">
+                    <clr-tree-node *ngFor="let planet_cto of star_cto.children">
+                      <button class="clr-treenode-link" style="text-overflow: clip;"
+                              (click)="select(planet_cto.celestial)"
+                              [ngClass]="{'mkp-selected': planet_cto.celestial === selectedCelestial && mode == Mode.CelestialView}">
+                        {{planet_cto.celestial.name}}
+                      </button>
+                      <ng-template *ngIf="planet_cto.children.length != 0" [clrIfExpanded]="true">
+                        <clr-tree-node *ngFor="let moon_cto of planet_cto.children">
+                          <button class="clr-treenode-link"
+                                  (click)="select(moon_cto.celestial)"
+                                  [ngClass]="{'mkp-selected': moon_cto.celestial === selectedCelestial && mode == Mode.CelestialView}">
+                            {{moon_cto.celestial.name}}
+                          </button>
+                        </clr-tree-node>
+                      </ng-template>
+                    </clr-tree-node>
+                  </ng-template>
+                </clr-tree-node>
+              </ul>
+            </section>
+          </section>
+        </nav>
       </div>
+
       <!--
-      <div class="mkp-cel-system-container">
-      <clr-tabs>
-        <clr-tab>
-          <button clrTabLink id="link1">Properties</button>
-          <clr-tab-content id="content1" *clrIfActive="true">
-            <div class="clr-row">
-              <div class="clr-col-6">
-              </div>
-            </div>
-          </clr-tab-content>
-        </clr-tab>
-      </clr-tabs>
-    </div>
-    -->
-
-    </div>
-  </div>
-  <nav class="sidenav">
-    <section class="sidenav-content">
-      <section class="nav-group">
-        <label>Main</label>
-        <ul class="nav-list">
-          <li>
-            <a class="nav-link"
-               (click)="setMode(Mode.HomeView)"
-               [ngClass]="{'mkp-selected': mode == Mode.HomeView}">Home</a>
-          </li>
-          <li>
-            <a class="nav-link"
-               (click)="setMode(Mode.ImportExportView)"
-               [ngClass]="{'mkp-selected': mode == Mode.ImportExportView}">Import / Export</a>
-          </li>
-          <li>
-            <a class="nav-link"
-               (click)="setMode(Mode.Advanced)"
-               [ngClass]="{'mkp-selected': mode == Mode.Advanced}">Advanced</a>
-          </li>
-        </ul>
-      </section>
-      <section class="nav-group">
-        <label>Tools</label>
-        <ul class="nav-list">
-          <li>
-            <a class="nav-link"
-               (click)="setMode(Mode.StabilityView)"
-               [ngClass]="{'mkp-selected': mode == Mode.StabilityView}">Stability Table</a>
-          </li>
-          <li>
-            <a class="nav-link"
-               (click)="setMode(Mode.AngularDiameterView)"
-               [ngClass]="{'mkp-selected': mode == Mode.AngularDiameterView}">Angular Diameter Viewer</a>
-          </li>
-          <li>
-            <a class="nav-link"
-               (click)="setMode(Mode.Tides)"
-               [ngClass]="{'mkp-selected': mode == Mode.Tides}">Tidal Strength</a>
-          </li>
-        </ul>
-      </section>
-      <section class="nav-group">
-        <label>Celestial Objects</label>
-        <ul class="celestial-nav-list">
-          <clr-tree-node *ngFor="let star_cto of activeSystem.getCelestialTree()">
-            <!--<clr-icon [attr.shape]="directory.icon"></clr-icon>-->
-            <button class="clr-treenode-link"
-                    (click)="select(star_cto.celestial)"
-                    [ngClass]="{'mkp-selected': star_cto.celestial === selectedCelestial && mode == Mode.CelestialView}">
-              {{star_cto.celestial.name}}
-            </button>
-            <ng-template *ngIf="star_cto.children.length != 0" [clrIfExpanded]="true">
-              <clr-tree-node *ngFor="let planet_cto of star_cto.children">
-                <button class="clr-treenode-link" style="text-overflow: clip;"
-                        (click)="select(planet_cto.celestial)"
-                        [ngClass]="{'mkp-selected': planet_cto.celestial === selectedCelestial && mode == Mode.CelestialView}">
-                  {{planet_cto.celestial.name}}
-                </button>
-                <ng-template *ngIf="planet_cto.children.length != 0" [clrIfExpanded]="true">
-                  <clr-tree-node *ngFor="let moon_cto of planet_cto.children">
-                    <button class="clr-treenode-link"
-                            (click)="select(moon_cto.celestial)"
-                            [ngClass]="{'mkp-selected': moon_cto.celestial === selectedCelestial && mode == Mode.CelestialView}">
-                      {{moon_cto.celestial.name}}
-                    </button>
-                  </clr-tree-node>
-                </ng-template>
-              </clr-tree-node>
-            </ng-template>
-          </clr-tree-node>
-        </ul>
-      </section>
-    </section>
-  </nav>
-</div>
-
-<!--
-MODALS
--->
-<clr-modal [(clrModalOpen)]="deleteModalOpen" *ngIf="selectedCelestial">
-  <h3 class="modal-title">Are you sure you want to delete {{selectedCelestial.name}} and all of its children?</h3>
-  <div class="modal-body">
-    <p>Deleting is permanent and the celestial cannot be recovered.</p>
-  </div>
-  <div class="modal-footer">
-    <button type="button" class="btn btn-primary" (click)="deleteModalOpen = false">Cancel</button>
-    <button type="button" class="btn btn-danger" (click)="deleteModalOpen = false; delete(selectedCelestial)">Delete</button>
-  </div>
-</clr-modal>
+  MODALS
+  -->
+      <clr-modal [(clrModalOpen)]="deleteModalOpen" *ngIf="selectedCelestial">
+        <h3 class="modal-title">Are you sure you want to delete {{selectedCelestial.name}} and all of its children?</h3>
+        <div class="modal-body">
+          <p>Deleting is permanent and the celestial cannot be recovered.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" (click)="deleteModalOpen = false">Cancel</button>
+          <button type="button" class="btn btn-danger" (click)="deleteModalOpen = false; delete(selectedCelestial)">Delete</button>
+        </div>
+      </clr-modal>
