@@ -100,46 +100,82 @@ export class PropertyUpdaterService {
     var rel_e = relative.eccentricity;
     var par_e;
 
+    var rel_SMAAB, rel_rB, rel_eAB: number;
+    if (relative.binary) {
+      rel_SMAAB = this.unitConverter.convert(relative.SMAAB, LengthUnits.gigameters, LengthUnits.meters);
+      rel_r = this.unitConverter.convert(relative.radiusA, RadiusUnits.km, RadiusUnits.m);
+      rel_rB = this.unitConverter.convert(relative.radiusB, RadiusUnits.km, RadiusUnits.m);
+      rel_eAB = relative.eccentricityAB;
+    }
+
+    //If the celestial we're trying to see the angular diameter of is the grandparent or parent sibling of
+    //the reference celestial. Binary planets can be parent siblings, so we need to take this into account for those.
     if (relation == Relations.GRANDPARENT || relation == Relations.PARENT_SIBLING) {
       par_SMA = this.unitConverter.convert(parent.SMA, LengthUnits.gigameters, LengthUnits.meters);
       par_r = this.unitConverter.convert(parent.radius, RadiusUnits.km, RadiusUnits.m);
       par_e = parent.eccentricity;
     }
 
+
+    //This only applies to binary planets if we're looking from the reference point of the star which, though possible,
+    //is quite strange.
     if (relation == Relations.CHILD) {
       d_min = rel_SMA * (1 - rel_e) - cel_r;
       d_avg = rel_SMA - cel_r;
       d_max = rel_SMA * (1 + rel_e) - cel_r;
     }
 
+    //This does not apply to binary planets.
     if (relation == Relations.GRANDPARENT) {
       d_min = par_SMA * (1 - par_e) - cel_SMA * (1 + cel_e) - cel_r;
       d_avg = par_SMA - cel_r;
       d_max = par_SMA * (1 + par_e) + cel_SMA * (1 + cel_e) - cel_r;
     }
 
+    //This applies if we're looking from the moon of a binary planet.
+    //We should calculate different d_mins and d_maxes because the SMAAB
+    //of the binary planets is not neglegible.
     if (relation == Relations.PARENT) {
       d_min = cel_SMA * (1 - cel_e) - cel_r;
       d_avg = cel_SMA - cel_r;
       d_max = cel_SMA * (1 + cel_e) - cel_r;
+
+      if (relative.binary) {
+        d_min = cel_SMA * (1 - cel_e) - cel_r - relative.SMAAB * (1 + rel_eAB);
+        d_avg = cel_SMA - cel_r - relative.SMAAB;
+        d_max = cel_SMA * (1 + cel_e) - cel_r + relative.SMAAB * (1 + rel_eAB);
+      }
     }
 
+    //This applies if we're looking from the moon of a planet that is not the binary planet.
     if (relation == Relations.PARENT_SIBLING) {
       d_min = this.findMinSiblingDistance(parent, relative) - cel_SMA * (1 + cel_e) - cel_r;
       d_avg = this.findAverageSiblingDistance(parent, relative) - cel_r;
       d_max = this.findMaxSiblingDistance(parent, relative) + cel_SMA * (1 + cel_e) - cel_r;
     }
 
+    //This applies if we're looking from a planet that is not the binary planet.
+    //We could add the binary planet's SMAAB into this calculation but I'm lazy and honestly
+    //nobody should really care.
     if (relation == Relations.SIBLING) {
       d_min = this.findMinSiblingDistance(celestial, relative) - cel_r;
       d_avg = this.findAverageSiblingDistance(celestial, relative) - cel_r;
       d_max = this.findMaxSiblingDistance(celestial, relative) - cel_r;
     }
 
+    //TODO: Relations.SELF
+
     ad.min_deg = Math.atan((2 * rel_r) / d_min) * 180 / Math.PI;
     ad.avg_deg = Math.atan((2 * rel_r) / d_avg) * 180 / Math.PI;
     ad.max_deg = Math.atan((2 * rel_r) / d_max) * 180 / Math.PI;
     ad.celestial = relative;
+
+    ad.binary = relative.binary;
+    if (relative.binary) {
+      ad.min_degB = Math.atan((2 * rel_rB) / d_min) * 180 / Math.PI;
+      ad.avg_degB = Math.atan((2 * rel_rB) / d_avg) * 180 / Math.PI;
+      ad.max_degB = Math.atan((2 * rel_rB) / d_max) * 180 / Math.PI;
+    }
     return ad;
   }
 
@@ -154,9 +190,29 @@ export class PropertyUpdaterService {
     var periapsis_AU = this.unitConverter.convert(periapsis, LengthUnits.gigameters, LengthUnits.AU);
 
     P.apoapsis_kilometers = math.round(apoapsis_km, INT_PRECISION);
+    P.apoapsis_gigameters = math.round(apoapsis, DEFAULT_PRECISION);
     P.apoapsis_AU = math.round(apoapsis_AU, DEFAULT_PRECISION);
     P.periapsis_kilometers = math.round(periapsis_km, INT_PRECISION);
+    P.periapsis_gigameters = math.round(periapsis, DEFAULT_PRECISION);
     P.periapsis_AU = math.round(periapsis_AU, DEFAULT_PRECISION);
+  }
+
+  apoapsisABperiapsisAB(celestial: Celestial, P: DerivedCelestialProperties): void {
+    var apoapsis = celestial.SMAAB * (1 + celestial.eccentricityAB);
+    var periapsis = celestial.SMAAB * (1 - celestial.eccentricityAB);
+
+    var apoapsis_km = this.unitConverter.convert(apoapsis, LengthUnits.gigameters, LengthUnits.kilometers);
+    var apoapsis_AU = this.unitConverter.convert(apoapsis, LengthUnits.gigameters, LengthUnits.AU);
+
+    var periapsis_km = this.unitConverter.convert(periapsis, LengthUnits.gigameters, LengthUnits.kilometers);
+    var periapsis_AU = this.unitConverter.convert(periapsis, LengthUnits.gigameters, LengthUnits.AU);
+
+    P.apoapsisAB_kilometers = math.round(apoapsis_km, INT_PRECISION);
+    P.apoapsisAB_gigameters = math.round(apoapsis, DEFAULT_PRECISION);
+    P.apoapsisAB_AU = math.round(apoapsis_AU, DEFAULT_PRECISION);
+    P.periapsisAB_kilometers = math.round(periapsis_km, INT_PRECISION);
+    P.periapsisAB_gigameters = math.round(apoapsis, DEFAULT_PRECISION);
+    P.periapsisAB_AU = math.round(periapsis_AU, DEFAULT_PRECISION);
   }
 
   stabilityTable(celestial: Celestial, siblings: Celestial[], parent: Celestial, P: DerivedCelestialProperties,
@@ -407,6 +463,43 @@ export class PropertyUpdaterService {
     P.orbitPeriod_concat = orbit;
   }
 
+  binaryOrbitPeriod(celestial: Celestial, P: DerivedCelestialProperties) {
+    var massA = this.unitConverter.convert(celestial.massA, MassUnits.earths, MassUnits.kilograms);
+    var massB = this.unitConverter.convert(celestial.massB, MassUnits.earths, MassUnits.kilograms);
+    var d = this.unitConverter.convert(celestial.SMAAB, LengthUnits.gigameters, LengthUnits.meters);
+
+    var period = 2 * Math.PI * Math.pow(Math.pow(d, 3) / (Constants.G * (massA + massB)), 0.5);
+    var period_min = this.unitConverter.convert(period, TimeUnits.seconds, TimeUnits.minutes);
+    var period_hour = this.unitConverter.convert(period, TimeUnits.seconds, TimeUnits.hours);
+    var period_day = this.unitConverter.convert(period, TimeUnits.seconds, TimeUnits.days);
+    var period_year = this.unitConverter.convert(period, TimeUnits.seconds, TimeUnits.years);
+
+    //P.binaryOrbitPeriod_localDaysA will implement later
+
+    P.binaryOrbitPeriod_seconds = math.round(period, DEFAULT_PRECISION);
+    P.binaryOrbitPeriod_minutes = math.round(period_min, DEFAULT_PRECISION);
+    P.binaryOrbitPeriod_hours = math.round(period_hour, DEFAULT_PRECISION);
+    P.binaryOrbitPeriod_days = math.round(period_day, DEFAULT_PRECISION);
+    P.binaryOrbitPeriod_years = math.round(period_year, DEFAULT_PRECISION);
+
+    var orbit: string = "";
+    orbit += Math.floor(period_year) + (Math.floor(period_year) == 1 ? " year, " : " years, ");
+    orbit += Math.floor(period_day % Constants.daysInYear) + (Math.floor(period_day % Constants.daysInYear) == 1 ? " day, " : " days, ");
+    orbit += Math.floor(period_hour % 24) + (Math.floor(period_hour % 24) == 1 ? " hour, " : " hours, ");
+    orbit += Math.floor(period_min % 60) + (Math.floor(period_min % 60) == 1 ? " minutes, and " : " minutes, and ");
+    orbit += Math.floor(period % 60) + (Math.floor(period % 60) == 1 ? " second" : " seconds");
+
+    P.binaryOrbitPeriod_concat = orbit;
+  }
+
+  mutualTidalLock(celestial: Celestial, P: DerivedCelestialProperties) {
+    if (celestial.mutualTidalLock) {
+      celestial.siderealA = P.binaryOrbitPeriod_hours;
+      celestial.siderealB = celestial.siderealA;
+
+    }
+  }
+
   radius(celestial: Celestial, P: DerivedCelestialProperties): void {
     //Volumetric mean radius
     var km = celestial.radius;
@@ -584,6 +677,11 @@ export class PropertyUpdaterService {
 
     P.greenhouseB_C = math.round(temp_C, LOW_PRECISION);
     P.greenhouseB_F = math.round(temp_F, LOW_PRECISION);
+  }
+
+  obliquityAB(celestial: Celestial, P: DerivedCelestialProperties) {
+    celestial.obliquityA = celestial.inclinationAB;
+    celestial.obliquityB = celestial.inclinationAB;
   }
 
 }

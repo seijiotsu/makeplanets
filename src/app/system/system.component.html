@@ -649,7 +649,165 @@
                 <clr-icon shape="window-close"></clr-icon>
               </button>
             </div>
-
+            <form class="clr-form clr-form-compact no-padding">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Eccentricity</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.eccentricityAB"
+                           (ngModelChange)="selectedCelestialChanged('eccentricityAB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                </div>
+              </div>
+            </form>
+            <form class="clr-form clr-form-compact no-padding">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Inclination</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.inclinationAB"
+                           (ngModelChange)="selectedCelestialChanged('inclinationAB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">°</span>
+                </div>
+              </div>
+            </form>
+            <form class="clr-form clr-form-compact no-padding">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Ascending node</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.ascendingNodeAB"
+                           (ngModelChange)="selectedCelestialChanged('ascendingNodeAB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">°</span>
+                </div>
+              </div>
+            </form>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin-2">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Arg. of periapsis</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [(ngModel)]="selectedCelestial.argOfPeriapsisAB"
+                           (ngModelChange)="selectedCelestialChanged('argOfPeriapsisAB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">°</span>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="clr-col-6">
+          <div class="mkp-cel-prop">
+            <div>
+              <label class="clr-control-label">Furthest planet separation</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).apoapsisAB_AU | number}}
+                  </span>
+                  &nbsp;AU
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).apoapsisAB_gigameters | number}}
+                  </span>
+                  &nbsp;Gm
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).apoapsisAB_kilometers | number}}
+                  </span>
+                  &nbsp;km
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="clr-control-label">Closest planet approach</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).periapsisAB_AU | number}}
+                  </span>
+                  &nbsp;AU
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).periapsisAB_gigameters | number}}
+                  </span>
+                  &nbsp;Gm
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).periapsisAB_kilometers | number}}
+                  </span>
+                  &nbsp;km
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="clr-control-label">Orbit Period</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_concat}}
+                  </span>
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_years | number}}
+                  </span>
+                  &nbsp;years
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_days | number}}
+                  </span>
+                  &nbsp;days
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_hours | number}}
+                  </span>
+                  &nbsp;hours
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_minutes | number}}
+                  </span>
+                  &nbsp;minutes
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_seconds | number}}
+                  </span>
+                  &nbsp;seconds
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_localDays | number}}
+                  </span>
+                  &nbsp;local days
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -658,7 +816,7 @@
         <div class="clr-col-6">
           <h3 class="mkp-cel-section-header">{{selectedCelestial.nameA}} Properties</h3>
           <div class="mkp-cel-prop">
-            <form clrForm>
+            <form clrForm class="no-padding mkp-cel-prop-bottom-margin">
               <clr-input-container>
                 <label>Celestial A Name</label>
                 <input clrInput
@@ -862,6 +1020,7 @@
                   <div class="clr-input-wrapper">
                     <input type="number"
                            class="clr-input"
+                           [attr.disabled]="selectedCelestial.mutualTidalLock ? '' : null"
                            [ngModelOptions]="{standalone: true}"
                            [(ngModel)]="selectedCelestial.obliquityA"
                            (ngModelChange)="selectedCelestialChanged('obliquityA')" />
@@ -878,6 +1037,7 @@
                   <div class="clr-input-wrapper">
                     <input type="number"
                            class="clr-input"
+                           [attr.disabled]="selectedCelestial.mutualTidalLock ? '' : null"
                            [ngModelOptions]="{standalone: true}"
                            [(ngModel)]="selectedCelestial.siderealA"
                            (ngModelChange)="selectedCelestialChanged('siderealA')" />
@@ -886,6 +1046,12 @@
                   <span class="clr-subtext"> hrs</span>
                 </div>
               </div>
+              <clr-checkbox name="mutualTidalLockCheckbox"
+                            id="mutualTidalLock"
+                            [(ngModel)]="selectedCelestial.mutualTidalLock"
+                            (click)="selectedCelestialChanged('mutualTidalLock')">
+                Mutual tidal lock
+              </clr-checkbox>
             </form>
             <label class="clr-control-label">Density</label>
             <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
@@ -1018,7 +1184,7 @@
         <div class="clr-col-6">
           <h3 class="mkp-cel-section-header">{{selectedCelestial.nameB}} Properties</h3>
           <div class="mkp-cel-prop">
-            <form clrForm>
+            <form clrForm class="no-padding mkp-cel-prop-bottom-margin">
               <clr-input-container>
                 <label>Celestial B Name</label>
                 <input clrInput
@@ -1222,6 +1388,7 @@
                   <div class="clr-input-wrapper">
                     <input type="number"
                            class="clr-input"
+                           [attr.disabled]="selectedCelestial.mutualTidalLock ? '' : null"
                            [ngModelOptions]="{standalone: true}"
                            [(ngModel)]="selectedCelestial.obliquityB"
                            (ngModelChange)="selectedCelestialChanged('obliquityB')" />
@@ -1238,6 +1405,7 @@
                   <div class="clr-input-wrapper">
                     <input type="number"
                            class="clr-input"
+                           [attr.disabled]="selectedCelestial.mutualTidalLock ? '' : null"
                            [ngModelOptions]="{standalone: true}"
                            [(ngModel)]="selectedCelestial.siderealB"
                            (ngModelChange)="selectedCelestialChanged('siderealB')" />
@@ -1586,6 +1754,12 @@
                       </span>
                       <span class="label mkp-prop">
                         <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).apoapsis_gigameters | number}}
+                        </span>
+                        &nbsp;Gm
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
                           {{activeSystem.getDerivedProperties(selectedCelestial).apoapsis_kilometers | number}}
                         </span>
                         &nbsp;km
@@ -1600,6 +1774,12 @@
                           {{activeSystem.getDerivedProperties(selectedCelestial).periapsis_AU | number}}
                         </span>
                         &nbsp;AU
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).periapsis_gigameters | number}}
+                        </span>
+                        &nbsp;Gm
                       </span>
                       <span class="label mkp-prop">
                         <span>

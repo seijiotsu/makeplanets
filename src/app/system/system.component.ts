@@ -161,7 +161,7 @@ export class SystemComponent implements OnInit {
 
   updateAngD(e): void {
     if (this.isInAngularDiameterMode()) {
-      this.getAngularDiameterCanvas().clear();
+      this.initializeAngularDiameterCanvas();
       var celestial: Celestial = this.activeSystem.getCelestial(e.target.value);
       this.selectedAngDCelestial = celestial;
 

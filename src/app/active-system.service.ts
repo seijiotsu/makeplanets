@@ -399,6 +399,21 @@ export class ActiveSystemService {
       }
     }
 
+    if (all && isBinary || p == 'massA' || p == 'massB' || p == 'SMAAB') {
+      this.propertyUpdater.binaryOrbitPeriod(celestial, properties);
+    }
+    if (all && isBinary || p == 'mutualTidalLock') {
+      this.propertyUpdater.mutualTidalLock(celestial, properties);
+    }
+
+    if (all && isBinary || p == 'SMAAB' || p == 'eccentricityAB') {
+      this.propertyUpdater.apoapsisABperiapsisAB(celestial, properties);
+    }
+
+    if (all && isBinary || p == 'inclinationAB' || p == 'mutualTidalLock') {
+      this.propertyUpdater.obliquityAB(celestial, properties);
+    }
+
   }
 
   refreshTides(): void {
@@ -646,9 +661,16 @@ export class ActiveSystemService {
     var max_width_used = 0;
     for (var i = 0; i < celestialsToDraw.length; i++) {
       var ad = celestialsToDraw[i];
-      min_width_used += ad.min_deg * DEGREE * 2;
-      avg_width_used += ad.avg_deg * DEGREE * 2;
-      max_width_used += ad.max_deg * DEGREE * 2;
+
+      if (ad.binary) { //Since binary planets are 'stacked' on top of each other in the visualizer
+        min_width_used += Math.max(ad.min_deg, ad.min_degB) * DEGREE * 2;
+        avg_width_used += Math.max(ad.avg_deg, ad.avg_degB) * DEGREE * 2;
+        max_width_used += Math.max(ad.max_deg, ad.max_degB) * DEGREE * 2;
+      } else {
+        min_width_used += ad.min_deg * DEGREE * 2;
+        avg_width_used += ad.avg_deg * DEGREE * 2;
+        max_width_used += ad.max_deg * DEGREE * 2;
+      }
     }
 
     var min_whitespace = (WIDTH - min_width_used) / (celestialsToDraw.length + 1);
@@ -661,15 +683,34 @@ export class ActiveSystemService {
     var x = 0;
     var y = HEIGHT / 2;
     for (var i = 0; i < celestialsToDraw.length; i++) {
-      var r = celestialsToDraw[i].avg_deg * DEGREE;
+      if (celestialsToDraw[i].binary) {
+        var rA = celestialsToDraw[i].avg_deg * DEGREE;
+        var rB = celestialsToDraw[i].avg_deg * DEGREE;
 
-      x += avg_whitespace;
-      x += r;
-      s.circle(x, y, r);
-      s.text(x, y + r + DEGREE, celestialsToDraw[i].celestial.name);
-      x += r;
+        x += avg_whitespace;
+
+        var xA = x + rA;
+        var xB = x + rB;
+
+        var yA = y - rA - avg_whitespace / 2;
+        var yB = y + rB + avg_whitespace / 2;
+
+        s.circle(xA, yA, rA);
+        s.circle(xB, yB, rB);
+
+        s.text(x, yA - rA - 30, celestialsToDraw[i].celestial.nameA);
+        s.text(x, yB + rB + 30, celestialsToDraw[i].celestial.nameB);
+        x += Math.max(rA, rB) * 2;
+      } else {
+        var r = celestialsToDraw[i].avg_deg * DEGREE;
+
+        x += avg_whitespace;
+        x += r;
+        s.circle(x, y, r);
+        s.text(x, y + r + 30, celestialsToDraw[i].celestial.name);
+        x += r;
+      }
     }
-
     var moon = s.circle(0, 0, DEGREE/2).attr({ fill: "grey", fillOpacity: 0.8 });
 
     function moveFunc(ev, x, y) {
@@ -677,6 +718,7 @@ export class ActiveSystemService {
     };
 
     s.mousemove(moveFunc);
+    console.log(s);
   }
 
   getRelation(celestial: Celestial, relative: Celestial) {

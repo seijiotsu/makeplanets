@@ -5,9 +5,11 @@ export class DerivedCelestialProperties {
   SMA_meters: number;
 
   apoapsis_kilometers: number;
+  apoapsis_gigameters: number;
   apoapsis_AU: number;
 
-  periapsis_kilometers: number;
+  periapsis_kilometers: number; 
+  periapsis_gigameters: number;
   periapsis_AU: number;
 
   orbitPeriod_concat: string;
@@ -59,6 +61,14 @@ export class DerivedCelestialProperties {
   SMAAB_kilometers: number;
   SMAAB_meters: number;
 
+  apoapsisAB_kilometers: number;
+  apoapsisAB_gigameters: number;
+  apoapsisAB_AU: number;
+
+  periapsisAB_kilometers: number;
+  periapsisAB_gigameters: number;
+  periapsisAB_AU: number;
+
   massA_sun: number;
   massA_jup: number;
   massA_moon: number;
@@ -104,4 +114,13 @@ export class DerivedCelestialProperties {
   greenhouseA_F: number;
   greenhouseB_C: number;
   greenhouseB_F: number;
+
+  binaryOrbitPeriod_concat: string;
+  binaryOrbitPeriod_years: number;
+  binaryOrbitPeriod_days: number;
+  binaryOrbitPeriod_hours: number;
+  binaryOrbitPeriod_minutes: number;
+  binaryOrbitPeriod_seconds: number;
+  binaryOrbitPeriod_localDaysA: number;
+  binaryOrbitPeriod_localDaysB: number;
 }
