@@ -78,6 +78,7 @@ export class SystemComponent implements OnInit {
       .subscribe(res => {
         var newCelestial = this.activeSystem.addSatellite(celestial, res);
         this.select(newCelestial);
+        this.saveSystem();
       }, err => {
         console.log(err);
       });
@@ -87,9 +88,11 @@ export class SystemComponent implements OnInit {
       .subscribe(res => {
         var newCelestial = this.activeSystem.addSatellite(celestial, res);
         this.select(newCelestial);
+        this.saveSystem();
       }, err => {
         console.log(err);
       });
+
   }
 
   saveSystem(): void {
@@ -161,6 +164,7 @@ export class SystemComponent implements OnInit {
 
   updateAngD(e): void {
     if (this.isInAngularDiameterMode()) {
+      this.getAngularDiameterCanvas().clear();
       this.initializeAngularDiameterCanvas();
       var celestial: Celestial = this.activeSystem.getCelestial(e.target.value);
       this.selectedAngDCelestial = celestial;
@@ -176,6 +180,10 @@ export class SystemComponent implements OnInit {
         this.selectedAngDCelestialChecked[i] = false;
       }
     }
+  }
+  setAngDType(type) {
+    this.activeSystem.setAngDType(type);
+    this.activeSystem.handleAngularDiameterDrawing(this.getAngularDiameterCanvas(), this.selectedAngDCelestial, this.selectedAngDCelestialChecked);
   }
   updateTide(e): void {
     var celestial: Celestial = this.activeSystem.getCelestial(e.target.value);

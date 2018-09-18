@@ -4,7 +4,7 @@ import { Celestial } from './models/celestial.model';
 import { System } from './models/system.model';
 import { CelestialTree } from './models/celestialTree';
 import { DerivedCelestialProperties } from './models/derivedCelestialProperties';
-import { Stability, StabilityObject, HillSphere } from './models/stabilities';
+import { Stability, StabilityObject, HillSphere, BinaryPlanetStabilityObject } from './models/stabilities';
 import { PropertyUpdaterService } from './property-updater.service';
 import { AngularDiameter } from './models/angularDiameter';
 import { Relations } from './models/relations';
@@ -42,6 +42,7 @@ export class ActiveSystemService {
   private stabilityTable: StabilityObject[][];
   private celestialIndexMap;
   private stabilityMap = {};
+  private binaryPlanetMoonStabilityMap = {};
   private hillSphereMap = {};
   private tideMap = {};
   
@@ -100,6 +101,11 @@ export class ActiveSystemService {
     newCelestial.owner = satelliteTemplate.owner;
     newCelestial.binary = satelliteTemplate.binary;
 
+    if (newCelestial.binary) {
+      newCelestial.nameA = 'Unnamed Celestial A';
+      newCelestial.nameB = 'Unnamed Celestial B';
+    }
+
 
     if (parent.type == 'star') {
       newCelestial.type = 'planet';
@@ -157,6 +163,9 @@ export class ActiveSystemService {
 
   getStability(c1: Celestial, c2: Celestial): StabilityObject {
     return this.stabilityMap[c1._id][c2._id];
+  }
+  getBinaryStability(c1: Celestial): BinaryPlanetStabilityObject {
+    return this.binaryPlanetMoonStabilityMap[c1._id];
   }
   getTide(c1: Celestial, c2: Celestial): TideObject {
     return this.tideMap[c1._id][c2._id];
@@ -255,7 +264,12 @@ export class ActiveSystemService {
     return this.hasParent(potentialChild) && celestial._id == potentialChild.parent_id;
   }
   isSibling(celestial: Celestial, potentialSibling: Celestial) {
+    //You can also be a sibling of yourself, note!
     return this.hasParent(celestial) && this.hasParent(potentialSibling) && celestial.parent_id == potentialSibling.parent_id;
+  }
+  isSelf(celestial: Celestial, potentialSelf: Celestial) {
+    //Just look in the mirror silly!
+    return celestial._id == potentialSelf._id;
   }
 
   getAllCelestials(): Celestial[] {
@@ -313,7 +327,7 @@ export class ActiveSystemService {
     if (all || p == 'mass' || p == 'stability') {
       if(!isBinary) this.propertyUpdater.mass(celestial, properties);
     }
-    if (all && isBinary || p == 'massA' || p == 'massB') {
+    if (all && isBinary || p == 'massA' || p == 'massB' || (p == 'stability' && isBinary)) {
       this.propertyUpdater.massAB(celestial, properties);
     }
 
@@ -333,6 +347,12 @@ export class ActiveSystemService {
 
       if (!isStar) {
         this.propertyUpdater.hillSphere(celestial, parent, properties);
+      }
+
+      if (!isStar && !isBinary) {
+        this.propertyUpdater.rocheLimit(celestial, parent, properties);
+      } else if (!isStar) {
+        this.propertyUpdater.rocheLimitAB(celestial, properties);
       }
     }
 
@@ -369,9 +389,9 @@ export class ActiveSystemService {
     /*
      * Handle binary planets
      */
-    if (all && isBinary || p == 'massA') this.propertyUpdater.massA(celestial, properties);
-    if (all && isBinary || p == 'radiusA') this.propertyUpdater.radiusA(celestial, properties);
-    if (all && isBinary || p == 'massA' || p == 'radiusA') {
+    if (all && isBinary || p == 'massA' || (p == 'stability' && isBinary)) this.propertyUpdater.massA(celestial, properties);
+    if (all && isBinary || p == 'radiusA' || (p == 'stability' && isBinary)) this.propertyUpdater.radiusA(celestial, properties);
+    if (all && isBinary || p == 'massA' || p == 'radiusA' || (p == 'stability' && isBinary)) {
       this.propertyUpdater.densityA(celestial, properties);
       this.propertyUpdater.gravityA(celestial, properties);
     }
@@ -384,9 +404,9 @@ export class ActiveSystemService {
       }
     }
 
-    if (all && isBinary || p == 'massB') this.propertyUpdater.massB(celestial, properties);
-    if (all && isBinary || p == 'radiusB') this.propertyUpdater.radiusB(celestial, properties);
-    if (all && isBinary || p == 'massB' || p == 'radiusB') {
+    if (all && isBinary || p == 'massB' || (p == 'stability' && isBinary)) this.propertyUpdater.massB(celestial, properties);
+    if (all && isBinary || p == 'radiusB' || (p == 'stability' && isBinary)) this.propertyUpdater.radiusB(celestial, properties);
+    if (all && isBinary || p == 'massB' || p == 'radiusB' || (p == 'stability' && isBinary)) {
       this.propertyUpdater.densityB(celestial, properties);
       this.propertyUpdater.gravityB(celestial, properties);
     }
@@ -399,14 +419,14 @@ export class ActiveSystemService {
       }
     }
 
-    if (all && isBinary || p == 'massA' || p == 'massB' || p == 'SMAAB') {
+    if (all && isBinary || p == 'massA' || p == 'massB' || p == 'SMAAB' || (p == 'stability' && isBinary)) {
       this.propertyUpdater.binaryOrbitPeriod(celestial, properties);
     }
-    if (all && isBinary || p == 'mutualTidalLock') {
+    if (all && isBinary || p == 'mutualTidalLock' || p == 'stability') {
       this.propertyUpdater.mutualTidalLock(celestial, properties);
     }
 
-    if (all && isBinary || p == 'SMAAB' || p == 'eccentricityAB') {
+    if (all && isBinary || p == 'SMAAB' || p == 'eccentricityAB' || (p == 'stability' && isBinary)) {
       this.propertyUpdater.apoapsisABperiapsisAB(celestial, properties);
     }
 
@@ -429,12 +449,25 @@ export class ActiveSystemService {
       var parent: Celestial = this.getParentObject(celestial);
       var children: Celestial[] = this.getChildren(celestial);
       var siblings: Celestial[] = this.getSiblingObjects(celestial);
-      var inclusiveSiblings: Celestial[] = this.getSiblingsInclusive(celestial);
       var isStar: boolean = celestial.type == 'star';
 
       if (isStar) continue;
 
       var radius_m = this.unitConverter.convert(celestial.radius, LengthUnits.kilometers, LengthUnits.meters);
+      var binary = false;
+      var binaryParent = false;
+
+      /*For binary planets only:*/
+      var radiusA_m;
+      var radiusB_m;
+      if (celestial.binary) {
+        binary = true;
+        radiusA_m = this.unitConverter.convert(celestial.radiusA, LengthUnits.kilometers, LengthUnits.meters);
+        radiusB_m = this.unitConverter.convert(celestial.radiusB, LengthUnits.kilometers, LengthUnits.meters);
+      }
+      if (parent.binary) {
+        binaryParent = true;
+      }
 
       for (var j = 0; j < siblings.length; j++) {
         var sibling: Celestial = siblings[j];
@@ -445,9 +478,20 @@ export class ActiveSystemService {
         var max_dist = this.propertyUpdater.findMaxSiblingDistance(celestial, sibling);
 
         var t = new TideObject();
-        t.min = this.calculateTidalStrength(mass_kg, radius_m, min_dist);
-        t.avg = this.calculateTidalStrength(mass_kg, radius_m, avg_dist);
-        t.max = this.calculateTidalStrength(mass_kg, radius_m, max_dist);
+
+        if (binary) {
+          t.binary = true;
+          t.min = this.calculateTidalStrength(mass_kg, radiusA_m, min_dist);
+          t.avg = this.calculateTidalStrength(mass_kg, radiusA_m, avg_dist);
+          t.max = this.calculateTidalStrength(mass_kg, radiusA_m, max_dist);
+          t.minB = this.calculateTidalStrength(mass_kg, radiusB_m, min_dist);
+          t.avgB = this.calculateTidalStrength(mass_kg, radiusB_m, avg_dist);
+          t.maxB = this.calculateTidalStrength(mass_kg, radiusB_m, max_dist);
+        } else {
+          t.min = this.calculateTidalStrength(mass_kg, radius_m, min_dist);
+          t.avg = this.calculateTidalStrength(mass_kg, radius_m, avg_dist);
+          t.max = this.calculateTidalStrength(mass_kg, radius_m, max_dist);
+        }
 
         celTidesMap[sibling._id] = this.formatTides(t);
       }
@@ -458,12 +502,24 @@ export class ActiveSystemService {
         var mass_kg = this.unitConverter.convert(child.mass, MassUnits.earths, MassUnits.kilograms);
 
         var min_dist = SMA_m * (1 - child.eccentricity);
+        var avg_dist = SMA_m;
         var max_dist = SMA_m * (1 + child.eccentricity);
 
         var t = new TideObject();
-        t.min = this.calculateTidalStrength(mass_kg, radius_m, min_dist);
-        t.avg = this.calculateTidalStrength(mass_kg, radius_m, SMA_m);
-        t.max = this.calculateTidalStrength(mass_kg, radius_m, max_dist);
+
+        if (binary) {
+          t.binary = true;
+          t.min = this.calculateTidalStrength(mass_kg, radiusA_m, min_dist);
+          t.avg = this.calculateTidalStrength(mass_kg, radiusA_m, avg_dist);
+          t.max = this.calculateTidalStrength(mass_kg, radiusA_m, max_dist);
+          t.minB = this.calculateTidalStrength(mass_kg, radiusB_m, min_dist);
+          t.avgB = this.calculateTidalStrength(mass_kg, radiusB_m, avg_dist);
+          t.maxB = this.calculateTidalStrength(mass_kg, radiusB_m, max_dist);
+        } else {
+          t.min = this.calculateTidalStrength(mass_kg, radius_m, min_dist);
+          t.avg = this.calculateTidalStrength(mass_kg, radius_m, avg_dist);
+          t.max = this.calculateTidalStrength(mass_kg, radius_m, max_dist);
+        }
 
         celTidesMap[child._id] = this.formatTides(t);
       }
@@ -473,10 +529,46 @@ export class ActiveSystemService {
       var min_dist = SMA_m * (1 - celestial.eccentricity);
       var avg_dist = SMA_m
       var max_dist = SMA_m * (1 + celestial.eccentricity);
+
       var t_parent = new TideObject();
-      t_parent.min = this.calculateTidalStrength(parent_mass_kg, radius_m, min_dist);
-      t_parent.avg = this.calculateTidalStrength(parent_mass_kg, radius_m, SMA_m);
-      t_parent.max = this.calculateTidalStrength(parent_mass_kg, radius_m, max_dist);
+
+      if (binary) {
+        t_parent.binary = true;
+        t_parent.min = this.calculateTidalStrength(parent_mass_kg, radiusA_m, min_dist);
+        t_parent.avg = this.calculateTidalStrength(parent_mass_kg, radiusA_m, avg_dist);
+        t_parent.max = this.calculateTidalStrength(parent_mass_kg, radiusA_m, max_dist);
+        t_parent.minB = this.calculateTidalStrength(parent_mass_kg, radiusB_m, min_dist);
+        t_parent.avgB = this.calculateTidalStrength(parent_mass_kg, radiusB_m, avg_dist);
+        t_parent.maxB = this.calculateTidalStrength(parent_mass_kg, radiusB_m, max_dist);
+      } else if (binaryParent) {
+        var P = this.getDerivedProperties(parent);
+        var mA = this.unitConverter.convert(parent.massA, MassUnits.earths, MassUnits.kilograms);
+        var mB = this.unitConverter.convert(parent.massB, MassUnits.earths, MassUnits.kilograms);
+
+        var SMAA = P.SMAA_meters;
+        var SMAB = P.SMAB_meters;
+
+        var min_distA = SMA_m * (1 - celestial.eccentricity) - SMAA * (1 + parent.eccentricityAB);
+        var avg_distA = SMA_m
+        var max_distA = SMA_m * (1 + celestial.eccentricity) + SMAA * (1 + parent.eccentricityAB);
+
+        var min_distB = SMA_m * (1 - celestial.eccentricity) - SMAB * (1 + parent.eccentricityAB);
+        var avg_distB = SMA_m
+        var max_distB = SMA_m * (1 + celestial.eccentricity) + SMAB * (1 + parent.eccentricityAB);
+
+        t_parent.binaryParent = true;
+        t_parent.min = this.calculateTidalStrength(mA, radius_m, min_distA);
+        t_parent.avg = this.calculateTidalStrength(mA, radius_m, avg_distA);
+        t_parent.max = this.calculateTidalStrength(mA, radius_m, max_distA);
+
+        t_parent.minB = this.calculateTidalStrength(mB, radius_m, min_distB);
+        t_parent.avgB = this.calculateTidalStrength(mB, radius_m, avg_distB);
+        t_parent.maxB = this.calculateTidalStrength(mB, radius_m, max_distB);
+      } else {
+        t_parent.min = this.calculateTidalStrength(parent_mass_kg, radius_m, min_dist);
+        t_parent.avg = this.calculateTidalStrength(parent_mass_kg, radius_m, SMA_m);
+        t_parent.max = this.calculateTidalStrength(parent_mass_kg, radius_m, max_dist);
+      }
       celTidesMap[parent._id] = this.formatTides(t_parent);
 
       if (celestial.type == 'moon') {
@@ -505,6 +597,12 @@ export class ActiveSystemService {
     T.avg = this.formatTideProperty(T.avg / Constants.MOON_TIDE_FORCE_N);
     T.max = this.formatTideProperty(T.max / Constants.MOON_TIDE_FORCE_N);
 
+    if (T.binary || T.binaryParent) {
+      T.minB = this.formatTideProperty(T.minB / Constants.MOON_TIDE_FORCE_N);
+      T.avgB = this.formatTideProperty(T.avgB / Constants.MOON_TIDE_FORCE_N);
+      T.maxB = this.formatTideProperty(T.maxB / Constants.MOON_TIDE_FORCE_N);
+    }
+
     return T;
   }
 
@@ -516,6 +614,9 @@ export class ActiveSystemService {
     } else {
       return math.round(n, 5);
     }
+  }
+  formatDegreeText(n: number): number {
+    return this.formatTideProperty(n);
   }
 
   refreshStabilities(): void {
@@ -556,10 +657,12 @@ export class ActiveSystemService {
         var celestialSatelliteForce = Constants.G * mass_kg2 * mass_kg1 / Math.pow(min_dist, 2);
         var ratio = parentCelestialForce * 1.0 / celestialSatelliteForce;
 
-        if (ratio > 1) {
-          ratio = math.round(ratio, 5);
-        } else {
+        if (ratio < 1) {
           ratio = math.round(ratio, 2);
+        } else if (ratio < 100) {
+          ratio = math.round(ratio, 1);
+        } else {
+          ratio = math.round(ratio, 0);
         }
 
         var stability = new StabilityObject();
@@ -581,6 +684,46 @@ export class ActiveSystemService {
 
         celStabilityMap[sibling._id] = stability;
       }
+
+      var max;
+      if (parent.binary) {
+        //Shell theorem does not apply for binary planets and their moons :)
+        var BP = new BinaryPlanetStabilityObject();
+
+        var mass_kgA = this.unitConverter.convert(parent.massA, MassUnits.earths, MassUnits.kilograms);
+        var mass_kgB = this.unitConverter.convert(parent.massB, MassUnits.earths, MassUnits.kilograms);
+        var SMAAB_m = this.unitConverter.convert(parent.SMAAB, LengthUnits.gigameters, LengthUnits.meters);
+
+        var forceA, forceB;
+        //SCENARIO: A is closest to moon and B is far away
+        forceA = Constants.G * mass_kg1 * mass_kgA / Math.pow(SMA_m1 - SMAAB_m, 2);
+        forceB = Constants.G * mass_kg1 * mass_kgA / Math.pow(SMA_m1 + SMAAB_m, 2);
+        BP.ratio_A = forceA + forceB;
+
+        //SCENARIO: A and B equally far from moon
+        forceA = Constants.G * mass_kg1 * mass_kgA / Math.pow(Math.sqrt(SMA_m1 * SMA_m1 + SMAAB_m * SMAAB_m), 2);
+        forceB = Constants.G * mass_kg1 * mass_kgA / Math.pow(Math.sqrt(SMA_m1 * SMA_m1 + SMAAB_m * SMAAB_m), 2);
+        BP.ratio_equidistant = forceA + forceB;
+
+        //SCENARIO: B is closest to moon and A is far away
+        forceA = Constants.G * mass_kg1 * mass_kgA / Math.pow(SMA_m1 + SMAAB_m, 2);
+        forceB = Constants.G * mass_kg1 * mass_kgA / Math.pow(SMA_m1 - SMAAB_m, 2);
+        BP.ratio_B = forceA + forceB;
+
+        var v1 = BP.ratio_A/BP.ratio_B;
+        var v2 = BP.ratio_B/BP.ratio_A;
+        var v3 = BP.ratio_A/BP.ratio_equidistant;
+        var v4 = BP.ratio_B/BP.ratio_equidistant;
+
+        max = Math.max(v1, v2);
+        max = Math.max(max, v3);
+        max = Math.max(max, v4);
+        BP.maxVariance = math.round(max, 3);
+
+        this.binaryPlanetMoonStabilityMap[celestial._id] = BP;
+      }
+
+
       var S = new StabilityObject();
 
       if (isUnstable) {
@@ -611,6 +754,13 @@ export class ActiveSystemService {
 
       }
 
+      if (parent.binary) {
+        if (max > 2.5) {
+          S.stability = Stability.Unstable;
+          S.class = "mkp-stability-unstable";
+        }
+      }
+
       celStabilityMap[celestial._id] = S;
 
       this.stabilityMap[celestial._id] = celStabilityMap;
@@ -633,6 +783,13 @@ export class ActiveSystemService {
     this.angDZoom = 1;
   }
 
+  private moon = null;
+  private moonInitialized = false;
+  private angDType = 'avg';
+  setAngDType(type: string): void {
+    this.angDType = type;
+  }
+
   handleAngularDiameterDrawing(s, celestial: Celestial, draw: boolean[]): void {
     s.clear();
 
@@ -647,11 +804,15 @@ export class ActiveSystemService {
 
     for (var i = 0; i < draw.length; i++) {
       if (draw[i]) {
-        var c = this.system.celestials[i]
+        var c = this.system.celestials[i];
         var ad: AngularDiameter;
 
         var relation: Relations = this.getRelation(celestial, c);
-        celestialsToDraw.push(this.propertyUpdater.angularDiameter(celestial, c, this.getParentObject(celestial), relation));
+        if (relation == Relations.SELF) {
+          celestialsToDraw.push(this.propertyUpdater.angularDiameterSelf(celestial));
+        } else {
+          celestialsToDraw.push(this.propertyUpdater.angularDiameter(celestial, c, this.getParentObject(celestial), relation, this.getDerivedProperties(this.getParentObject(celestial))));
+        }
       }
     }
 
@@ -659,6 +820,7 @@ export class ActiveSystemService {
     var min_width_used = 0;
     var avg_width_used = 0;
     var max_width_used = 0;
+    var numberOfSelfsDisplaying = 0;
     for (var i = 0; i < celestialsToDraw.length; i++) {
       var ad = celestialsToDraw[i];
 
@@ -666,6 +828,11 @@ export class ActiveSystemService {
         min_width_used += Math.max(ad.min_deg, ad.min_degB) * DEGREE * 2;
         avg_width_used += Math.max(ad.avg_deg, ad.avg_degB) * DEGREE * 2;
         max_width_used += Math.max(ad.max_deg, ad.max_degB) * DEGREE * 2;
+      } else if (ad.self) {
+        numberOfSelfsDisplaying++;
+        min_width_used += (ad.min_deg + ad.min_degB) * DEGREE * 2;
+        avg_width_used += (ad.avg_deg + ad.avg_degB) * DEGREE * 2;
+        max_width_used += (ad.max_deg + ad.max_degB) * DEGREE * 2;
       } else {
         min_width_used += ad.min_deg * DEGREE * 2;
         avg_width_used += ad.avg_deg * DEGREE * 2;
@@ -673,57 +840,99 @@ export class ActiveSystemService {
       }
     }
 
-    var min_whitespace = (WIDTH - min_width_used) / (celestialsToDraw.length + 1);
-    var avg_whitespace = (WIDTH - avg_width_used) / (celestialsToDraw.length + 1);
-    var max_whitespace = (WIDTH - max_width_used) / (celestialsToDraw.length + 1);
+    var min_whitespace = (WIDTH - min_width_used) / (celestialsToDraw.length + 1 + numberOfSelfsDisplaying);
+    var avg_whitespace = (WIDTH - avg_width_used) / (celestialsToDraw.length + 1 + numberOfSelfsDisplaying);
+    var max_whitespace = (WIDTH - max_width_used) / (celestialsToDraw.length + 1 + numberOfSelfsDisplaying);
 
-    //var moon = s.circle(WIDTH / 2, HEIGHT / 2, DEGREE * 6);
+    console.log(celestialsToDraw.length);
 
-    //For now we only draw average distance sizes
     var x = 0;
     var y = HEIGHT / 2;
     for (var i = 0; i < celestialsToDraw.length; i++) {
-      if (celestialsToDraw[i].binary) {
-        var rA = celestialsToDraw[i].avg_deg * DEGREE;
-        var rB = celestialsToDraw[i].avg_deg * DEGREE;
-
-        x += avg_whitespace;
-
-        var xA = x + rA;
-        var xB = x + rB;
-
-        var yA = y - rA - avg_whitespace / 2;
-        var yB = y + rB + avg_whitespace / 2;
-
-        s.circle(xA, yA, rA);
-        s.circle(xB, yB, rB);
-
-        s.text(x, yA - rA - 30, celestialsToDraw[i].celestial.nameA);
-        s.text(x, yB + rB + 30, celestialsToDraw[i].celestial.nameB);
-        x += Math.max(rA, rB) * 2;
-      } else {
-        var r = celestialsToDraw[i].avg_deg * DEGREE;
-
-        x += avg_whitespace;
-        x += r;
-        s.circle(x, y, r);
-        s.text(x, y + r + 30, celestialsToDraw[i].celestial.name);
-        x += r;
+      var ad = celestialsToDraw[i];
+      switch (this.angDType) {
+        case 'min':
+          x = this.renderCelestial(ad.min_deg, ad.min_degB, ad.binary, ad.self, min_whitespace, x, y, DEGREE, s, ad.celestial);
+          break;
+        case 'avg':
+          x = this.renderCelestial(ad.avg_deg, ad.avg_degB, ad.binary, ad.self, avg_whitespace, x, y, DEGREE, s, ad.celestial);
+          break;
+        case 'max':
+          x = this.renderCelestial(ad.max_deg, ad.max_degB, ad.binary, ad.self, max_whitespace, x, y, DEGREE, s, ad.celestial);
+          break;
       }
     }
-    var moon = s.circle(0, 0, DEGREE/2).attr({ fill: "grey", fillOpacity: 0.8 });
 
+    if (!this.moonInitialized) {
+      this.moon = s.circle(0, 0, DEGREE / 2).attr({ fill: "grey", fillOpacity: 0.8 });
+    }
+    var moon = this.moon;
     function moveFunc(ev, x, y) {
       moon.attr({ cx: ev.offsetX, cy: ev.offsetY });
     };
-
-    s.mousemove(moveFunc);
+    if (!this.moonInitialized) {
+      s.mousemove(moveFunc);
+      this.moonInitialized = true;
+    }
+    if (this.moonInitialized) {
+      this.moon.attr({ r: DEGREE / 2 });
+      s.append(this.moon);
+    }
     console.log(s);
+  }
+
+  renderCelestial(deg, degB, binary, self, avg_whitespace, x, y, DEGREE, s, celestial) {
+    if (binary) {
+      console.log("Drawing binary!", deg, degB);
+      var rA = deg * DEGREE;
+      var rB = degB * DEGREE;
+
+      x += avg_whitespace;
+
+      var xA = x + rA;
+      var xB = x + rB;
+
+      var yA = y - rA - avg_whitespace / 4;
+      var yB = y + rB + avg_whitespace / 4;
+
+      s.circle(xA, yA, rA);
+      s.circle(xB, yB, rB);
+
+      s.text(x - rA, yA - rA - 30, celestial.nameA + " (" + this.formatDegreeText(deg) + "°)");
+      s.text(x - rB, yB + rB + 30, celestial.nameB + " (" + this.formatDegreeText(degB) + "°)");
+      x += Math.max(rA, rB) * 2;
+    } else if (self) {
+      var rA = deg * DEGREE;
+      var rB = degB * DEGREE;
+
+      x += avg_whitespace;
+
+      x += rA;
+      s.circle(x, y, rA);
+      s.text(x - rA, y + rA + 30, celestial.nameA + " from " + celestial.nameB + " (" + this.formatDegreeText(deg) + "°)");
+
+      x += rA + avg_whitespace + rB;
+      s.circle(x, y, rB);
+      s.text(x - rB, y + rB + 30, celestial.nameB + " from " + celestial.nameA + " (" + this.formatDegreeText(degB) + "°)");
+      x += rB
+    } else {
+      var r = deg * DEGREE;
+
+      x += avg_whitespace;
+      x += r;
+      s.circle(x, y, r);
+      s.text(x - r, y + r + 30, celestial.name + " (" + this.formatDegreeText(deg) + "°)");
+      x += r;
+    }
+
+    return x;
   }
 
   getRelation(celestial: Celestial, relative: Celestial) {
     if (this.isParent(celestial, relative)) {
       return Relations.PARENT;
+    } else if (this.isSelf(celestial, relative)) {
+      return Relations.SELF;
     } else if (this.isSibling(celestial, relative)) {
       return Relations.SIBLING;
     } else if (this.isChild(celestial, relative)) {

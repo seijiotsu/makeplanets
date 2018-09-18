@@ -49,15 +49,37 @@
     <svg id="angularDiameter"
          [ngClass]="{'mkp-ang-active': mode == Mode.AngularDiameterView, 'mkp-ang-inactive': mode != Mode.AngularDiameterView}"></svg>
     <div *ngIf="mode == Mode.AngularDiameterView" class="mkp-ang-diam-view">
-      <button type="button" class="btn btn-icon btn-primary" (click)="zoomAngDCanvas('in')">
-        <clr-icon shape="zoom-in"></clr-icon>
-      </button>
-      <button type="button" class="btn btn-icon btn-primary" (click)="zoomAngDCanvas('out')">
-        <clr-icon shape="zoom-out"></clr-icon>
-      </button>
-      <button type="button" class="btn btn-icon btn-primary" (click)="zoomAngDCanvas('reset')">
-        <clr-icon shape="refresh"></clr-icon>
-      </button>
+      <div class="mkp-centerer">
+        <button type="button" class="btn btn-icon btn-primary" (click)="zoomAngDCanvas('in')">
+          <clr-icon shape="zoom-in"></clr-icon>
+        </button>
+        <button type="button" class="btn btn-icon btn-primary" (click)="zoomAngDCanvas('out')">
+          <clr-icon shape="zoom-out"></clr-icon>
+        </button>
+        <button type="button" class="btn btn-icon btn-primary" (click)="zoomAngDCanvas('reset')">
+          <clr-icon shape="refresh"></clr-icon>
+        </button>
+        <div class="btn-group">
+          <div class="radio btn">
+            <input type="radio" name="btn-group-demo-radios" id="btn-demo-radio-1">
+            <label for="btn-demo-radio-1" (click)="setAngDType('min')">MAX SIZE</label>
+          </div>
+          <div class="radio btn">
+            <input type="radio" name="btn-group-demo-radios" id="btn-demo-radio-2" checked="checked">
+            <label for="btn-demo-radio-2" (click)="setAngDType('avg')">AVG SIZE</label>
+          </div>
+          <div class="radio btn">
+            <input type="radio" name="btn-group-demo-radios" id="btn-demo-radio-3">
+            <label for="btn-demo-radio-3" (click)="setAngDType('max')">MIN SIZE</label>
+          </div>
+        </div>
+      </div>
+      <p class="p5 no-padding no-margin">Compare celestials to the size of the Moon in our sky (using the grey Moon cursor)</p>
+      <p class="p5 no-padding no-margin">
+        *Please note that MIN, AVG and MAX sizes are only approximations in order to speed up the calculations
+        significantly. You are advised to simulate your system in Space Engine in order to get a better feel for the sizes of objects in the skies
+        of each other.
+      </p>
       <div class="clr-row">
         <div class="clr-col-4">
           <h2>Select Celestial</h2>
@@ -73,6 +95,13 @@
         </div>
         <div class="clr-col-4" *ngIf="selectedAngDCelestial">
           <h2>View size in sky of</h2>
+          <div *ngIf="selectedAngDCelestial.binary">
+            <h3>Self</h3>
+            <clr-checkbox (change)="drawAngDCanvas($event)"
+                          [(ngModel)]="selectedAngDCelestialChecked[activeSystem.getCelestialIndex(selectedAngDCelestial)]">
+              View self (binary planets only)
+            </clr-checkbox>
+          </div>
           <div>
             <h3>Parents</h3>
             <clr-checkbox (change)="drawAngDCanvas($event)"
@@ -127,6 +156,7 @@
             <input type="number"
                    class="clr-input"
                    [ngModelOptions]="{standalone: true}"
+                   [attr.disabled]="celestial.binary ? '' : null"
                    [(ngModel)]="celestial.mass"
                    (ngModelChange)="celestialChanged(celestial, 'stability')" />
             <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>&nbsp;M⊕
@@ -143,8 +173,32 @@
 
           <clr-dg-row-detail *clrIfExpanded>
             <div class="mkp-force-col">
+              <div *ngIf="celestial.binary">
+                <clr-dg-cell *ngIf="celestial.type != 'star'">
+                  <label class="clr-control-label">{{celestial.nameA}}'s mass</label>
+                  <input type="number"
+                         class="clr-input"
+                         [ngModelOptions]="{standalone: true}"
+                         [(ngModel)]="celestial.massA"
+                         (ngModelChange)="celestialChanged(celestial, 'stability')" />
+                  <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>&nbsp;M⊕
+                </clr-dg-cell>
+                <clr-dg-cell *ngIf="celestial.type != 'star'">
+                  <label class="clr-control-label">{{celestial.nameB}}'s mass</label>
+                  <input type="number"
+                         class="clr-input"
+                         [ngModelOptions]="{standalone: true}"
+                         [(ngModel)]="celestial.massB"
+                         (ngModelChange)="celestialChanged(celestial, 'stability')" />
+                  <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>&nbsp;M⊕
+                </clr-dg-cell>
+              </div>
               <h3>{{activeSystem.getStability(celestial, celestial).hillSphere}}</h3>
-              <table class="table" *ngIf="celestial.type != 'star'">
+              <h3 *ngIf="activeSystem.getParentObject(celestial).binary">The binary variance score for this moon is {{activeSystem.getBinaryStability(celestial).maxVariance}}</h3>
+              <p class="p5">The binary variance score captures the variation of the combined force the moon's parent planets have on the moon. To calculate it,
+              the combined force of the parent planets on the moon is sampled at three points. The highest ratio between those three sampled forces is the variance. <b>If the variance
+                                         is greater than approximately 2.5, the moon is considered to be unstable.</b></p>
+              <table class="table" *ngIf="celestial.type != 'star' && activeSystem.getSiblingObjects(celestial).length > 0">
                 <thead>
                   <tr>
                     <th>Sibling Celestial</th>
@@ -208,6 +262,10 @@
           <div *ngIf="selectedTideCelestial.type != 'star'">
             <div>
               <h3>Parents</h3>
+              <hr />
+              <div *ngIf="selectedTideCelestial.binary">
+                <h4>{{selectedTideCelestial.nameA}}'s tides</h4>
+              </div>
               <clr-datagrid>
                 <clr-dg-column>Name</clr-dg-column>
                 <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
@@ -215,12 +273,32 @@
                 <clr-dg-column>Min Strength (x Moon)</clr-dg-column>
 
                 <clr-dg-row *ngFor="let parent of selectedTideCelestialParents">
-                  <clr-dg-cell>{{parent.name}}</clr-dg-cell>
-                  <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parent).min}}</clr-dg-cell>
-                  <clr-dg-cell><b>{{activeSystem.getTide(selectedTideCelestial, parent).avg}}</b></clr-dg-cell>
-                  <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parent).max}}</clr-dg-cell>
+                  <clr-dg-cell *ngIf="parent.binary">{{parent.nameA}}<br/><br/>{{parent.nameB}}</clr-dg-cell>
+                  <clr-dg-cell *ngIf="parent.binary">{{activeSystem.getTide(selectedTideCelestial, parent).min}}<br /><br />{{activeSystem.getTide(selectedTideCelestial, parent).minB}}</clr-dg-cell>
+                  <clr-dg-cell *ngIf="parent.binary"><b>{{activeSystem.getTide(selectedTideCelestial, parent).avg}}<br /><br />{{activeSystem.getTide(selectedTideCelestial, parent).avgB}}</b></clr-dg-cell>
+                  <clr-dg-cell *ngIf="parent.binary">{{activeSystem.getTide(selectedTideCelestial, parent).max}}<br /><br />{{activeSystem.getTide(selectedTideCelestial, parent).maxB}}</clr-dg-cell>
+                  <clr-dg-cell *ngIf="!parent.binary">{{parent.name}}</clr-dg-cell>
+                  <clr-dg-cell *ngIf="!parent.binary">{{activeSystem.getTide(selectedTideCelestial, parent).min}}</clr-dg-cell>
+                  <clr-dg-cell *ngIf="!parent.binary"><b>{{activeSystem.getTide(selectedTideCelestial, parent).avg}}</b></clr-dg-cell>
+                  <clr-dg-cell *ngIf="!parent.binary">{{activeSystem.getTide(selectedTideCelestial, parent).max}}</clr-dg-cell>
                 </clr-dg-row>
               </clr-datagrid>
+              <div *ngIf="selectedTideCelestial.binary">
+                <h4>{{selectedTideCelestial.nameB}}'s tides</h4>
+                <clr-datagrid>
+                  <clr-dg-column>Name</clr-dg-column>
+                  <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
+                  <clr-dg-column>Avg Strength (x Moon)</clr-dg-column>
+                  <clr-dg-column>Min Strength (x Moon)</clr-dg-column>
+
+                  <clr-dg-row *ngFor="let parent of selectedTideCelestialParents">
+                    <clr-dg-cell>{{parent.name}}</clr-dg-cell>
+                    <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parent).minB}}</clr-dg-cell>
+                    <clr-dg-cell><b>{{activeSystem.getTide(selectedTideCelestial, parent).avgB}}</b></clr-dg-cell>
+                    <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, parent).maxB}}</clr-dg-cell>
+                  </clr-dg-row>
+                </clr-datagrid>
+              </div>
             </div>
             <!--
           <div *ngIf="selectedTideCelestial.type == 'moon' && selectedTideCelestialParentSiblings.length > 0">
@@ -241,6 +319,10 @@
           </div>-->
             <div *ngIf="selectedTideCelestialSiblings.length > 0">
               <h3>Siblings</h3>
+              <hr />
+              <div *ngIf="selectedTideCelestial.binary">
+                <h4>{{selectedTideCelestial.nameA}}'s tides</h4>
+              </div>
               <clr-datagrid>
                 <clr-dg-column>Name</clr-dg-column>
                 <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
@@ -254,9 +336,29 @@
                   <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, sibling).max}}</clr-dg-cell>
                 </clr-dg-row>
               </clr-datagrid>
+              <div *ngIf="selectedTideCelestial.binary">
+                <h4>{{selectedTideCelestial.nameB}}'s tides</h4>
+                <clr-datagrid>
+                  <clr-dg-column>Name</clr-dg-column>
+                  <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
+                  <clr-dg-column>Avg Strength (x Moon)</clr-dg-column>
+                  <clr-dg-column>Min Strength (x Moon)</clr-dg-column>
+
+                  <clr-dg-row *ngFor="let sibling of selectedTideCelestialSiblings">
+                    <clr-dg-cell>{{sibling.name}}</clr-dg-cell>
+                    <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, sibling).minB}}</clr-dg-cell>
+                    <clr-dg-cell><b>{{activeSystem.getTide(selectedTideCelestial, sibling).avgB}}</b></clr-dg-cell>
+                    <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, sibling).maxB}}</clr-dg-cell>
+                  </clr-dg-row>
+                </clr-datagrid>
+              </div>
             </div>
             <div *ngIf="selectedTideCelestial.type != 'moon' && selectedTideCelestialChildren.length > 0">
               <h3>Children</h3>
+              <hr />
+              <div *ngIf="selectedTideCelestial.binary">
+                <h4>{{selectedTideCelestial.nameA}}'s tides</h4>
+              </div>
               <clr-datagrid>
                 <clr-dg-column>Name</clr-dg-column>
                 <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
@@ -270,6 +372,22 @@
                   <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, child).max}}</clr-dg-cell>
                 </clr-dg-row>
               </clr-datagrid>
+              <div *ngIf="selectedTideCelestial.binary">
+                <h4>{{selectedTideCelestial.nameB}}'s tides</h4>
+                <clr-datagrid>
+                  <clr-dg-column>Name</clr-dg-column>
+                  <clr-dg-column>Max Strength (x Moon)</clr-dg-column>
+                  <clr-dg-column>Avg Strength (x Moon)</clr-dg-column>
+                  <clr-dg-column>Min Strength (x Moon)</clr-dg-column>
+
+                  <clr-dg-row *ngFor="let child of selectedTideCelestialChildren">
+                    <clr-dg-cell>{{child.name}}</clr-dg-cell>
+                    <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, child).minB}}</clr-dg-cell>
+                    <clr-dg-cell><b>{{activeSystem.getTide(selectedTideCelestial, child).avgB}}</b></clr-dg-cell>
+                    <clr-dg-cell>{{activeSystem.getTide(selectedTideCelestial, child).maxB}}</clr-dg-cell>
+                  </clr-dg-row>
+                </clr-datagrid>
+              </div>
             </div>
           </div>
         </div>
@@ -281,6 +399,12 @@
   -->
     <div *ngIf="mode == Mode.CelestialView && selectedCelestial.binary">
       <h1>{{selectedCelestial.name}}</h1>
+      <button *ngIf="selectedCelestial.type == 'planet'"
+              type="button"
+              (click)="addSatellite(selectedCelestial)"
+              class="btn btn-primary btn-sm">
+        Add Satellite
+      </button>
       <button *ngIf="selectedCelestial.type != 'star'"
               type="button"
               (click)="deleteModalOpen = true"
@@ -530,6 +654,30 @@
                 </span>
               </div>
             </div>
+            <div>
+              <label class="clr-control-label">Hill sphere</label>
+              <p class="p5 no-padding no-margin">Satellites are generally stable if they orbit within half of the Hill sphere's outer limit.</p>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_AU | number}}
+                  </span>
+                  &nbsp;AU
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_Gm | number}}
+                  </span>
+                  &nbsp;Gm
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_km | number}}
+                  </span>
+                  &nbsp;km
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -761,50 +909,166 @@
                   &nbsp;km
                 </span>
               </div>
+              <label class="clr-control-label">Semi-major axis of {{selectedCelestial.nameA}} around barycenter</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).SMAA_AU | number}}
+                  </span>
+                  &nbsp;AU
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).SMAA_gigameters | number}}
+                  </span>
+                  &nbsp;Gm
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).SMAA_kilometers | number}}
+                  </span>
+                  &nbsp;km
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).SMAA_meters | number}}
+                  </span>
+                  &nbsp;m
+                </span>
+              </div>
+              <label class="clr-control-label">Semi-major axis of {{selectedCelestial.nameB}} around barycenter</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).SMAB_AU | number}}
+                  </span>
+                  &nbsp;AU
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).SMAB_gigameters | number}}
+                  </span>
+                  &nbsp;Gm
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).SMAB_kilometers | number}}
+                  </span>
+                  &nbsp;km
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).SMAB_meters | number}}
+                  </span>
+                  &nbsp;m
+                </span>
+              </div>
             </div>
             <div>
               <label class="clr-control-label">Orbit Period</label>
               <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_concat}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).binaryOrbitPeriod_concat}}
                   </span>
                 </span>
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_years | number}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).binaryOrbitPeriod_years | number}}
                   </span>
                   &nbsp;years
                 </span>
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_days | number}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).binaryOrbitPeriod_days | number}}
                   </span>
                   &nbsp;days
                 </span>
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_hours | number}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).binaryOrbitPeriod_hours | number}}
                   </span>
                   &nbsp;hours
                 </span>
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_minutes | number}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).binaryOrbitPeriod_minutes | number}}
                   </span>
                   &nbsp;minutes
                 </span>
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_seconds | number}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).binaryOrbitPeriod_seconds | number}}
                   </span>
                   &nbsp;seconds
                 </span>
                 <span class="label mkp-prop">
                   <span>
-                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_localDays | number}}
+                    {{activeSystem.getDerivedProperties(selectedCelestial).binaryOrbitPeriod_localDays | number}}
                   </span>
                   &nbsp;local days
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="clr-control-label">{{selectedCelestial.nameA}}'s roche limit w.r.t. {{selectedCelestial.nameB}}</label>
+              <p class="p5 no-padding no-margin">
+                The roche limit is the inner limit that an object may orbit another. In this case, it is the closest
+                distance between the binary planets allowable before {{selectedCelestial.nameA}} begins to break up.
+              </p>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimitA_AU | number}}
+                  </span>
+                  &nbsp;AU
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimitA_Gm | number}}
+                  </span>
+                  &nbsp;Gm
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimitA_km | number}}
+                  </span>
+                  &nbsp;km
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimitA_m | number}}
+                  </span>
+                  &nbsp;m
+                </span>
+              </div>
+            </div>
+            <div>
+              <label class="clr-control-label">{{selectedCelestial.nameB}}'s roche limit w.r.t. {{selectedCelestial.nameA}}</label>
+              <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimitB_AU | number}}
+                  </span>
+                  &nbsp;AU
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimitB_Gm | number}}
+                  </span>
+                  &nbsp;Gm
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimitB_km | number}}
+                  </span>
+                  &nbsp;km
+                </span>
+                <span class="label mkp-prop">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimitB_m | number}}
+                  </span>
+                  &nbsp;m
                 </span>
               </div>
             </div>
@@ -1545,7 +1809,7 @@
         </div>
       </div>
 
-          </div>
+    </div>
           <!--
         SINGULAR CELESTIAL VIEW
       -->
@@ -2284,7 +2548,7 @@
             <h3 class="mkp-cel-section-header">System</h3>
             <div class="clr-row">
               <div class="clr-col-6">
-                <div class="mkp-cel-prop" *ngIf="selectedCelestial.type != 'star'">
+                <div class="mkp-cel-prop mkp-cel-prop-bottom-margin-2" *ngIf="selectedCelestial.type != 'star'">
 
                   <div>
                     <label class="clr-control-label">Hill sphere</label>
@@ -2307,6 +2571,38 @@
                           {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_km | number}}
                         </span>
                         &nbsp;km
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="clr-control-label">Roche limit</label>
+                    <p class="p5 no-padding no-margin">The roche limit is the inner limit that a satellite may orbit its parent, and varies individually
+                    for each satellite depending on its density. If a satellite is closer to its
+                    parent than its roche limit, it will disintegrate into a ring system.</p>
+                    <div class="mkp-cel-prop-unit-spans">
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimit_AU | number}}
+                        </span>
+                        &nbsp;AU
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimit_Gm | number}}
+                        </span>
+                        &nbsp;Gm
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimit_km | number}}
+                        </span>
+                        &nbsp;km
+                      </span>
+                      <span class="label mkp-prop">
+                        <span>
+                          {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimit_m | number}}
+                        </span>
+                        &nbsp;m
                       </span>
                     </div>
                   </div>

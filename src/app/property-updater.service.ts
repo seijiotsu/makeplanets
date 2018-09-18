@@ -55,11 +55,11 @@ export class PropertyUpdaterService {
     var SMA_m1 = this.unitConverter.convert(A.SMA, LengthUnits.gigameters, LengthUnits.meters);
     var SMA_m2 = this.unitConverter.convert(B.SMA, LengthUnits.gigameters, LengthUnits.meters);
 
-    var d1 = Math.abs(SMA_m1 * (1 - A.eccentricity) - SMA_m2 * (1 - B.eccentricity));
-    var d2 = Math.abs(SMA_m1 * (1 + A.eccentricity) - SMA_m2 * (1 - B.eccentricity));
-    var d3 = Math.abs(SMA_m1 * (1 - A.eccentricity) - SMA_m2 * (1 + B.eccentricity));
-    var d4 = Math.abs(SMA_m1 * (1 + A.eccentricity) - SMA_m2 * (1 + B.eccentricity));
-    var d5 = Math.abs(SMA_m1 - SMA_m2);
+    var d1 = Math.abs(SMA_m1 * (1 + A.eccentricity) + SMA_m2 * (1 + B.eccentricity));
+    var d2 = Math.abs(SMA_m1 * (1 - A.eccentricity) + SMA_m2 * (1 + B.eccentricity));
+    var d3 = Math.abs(SMA_m1 * (1 + A.eccentricity) + SMA_m2 * (1 - B.eccentricity));
+    var d4 = Math.abs(SMA_m1 * (1 - A.eccentricity) + SMA_m2 * (1 - B.eccentricity));
+    var d5 = Math.abs(SMA_m1 + SMA_m2);
 
     var max_dist = Math.max(d1, d2);
     max_dist = Math.max(max_dist, d3);
@@ -67,22 +67,56 @@ export class PropertyUpdaterService {
     max_dist = Math.max(max_dist, d5);
 
     return max_dist;
+
   }
 
   findAverageSiblingDistance(A: Celestial, B: Celestial): number {
     var SMA_m1 = this.unitConverter.convert(A.SMA, LengthUnits.gigameters, LengthUnits.meters);
     var SMA_m2 = this.unitConverter.convert(B.SMA, LengthUnits.gigameters, LengthUnits.meters);
 
-    var d1 = Math.abs(SMA_m1 * (1 - A.eccentricity) - SMA_m2 * (1 - B.eccentricity));
-    var d2 = Math.abs(SMA_m1 * (1 + A.eccentricity) - SMA_m2 * (1 - B.eccentricity));
-    var d3 = Math.abs(SMA_m1 * (1 - A.eccentricity) - SMA_m2 * (1 + B.eccentricity));
-    var d4 = Math.abs(SMA_m1 * (1 + A.eccentricity) - SMA_m2 * (1 + B.eccentricity));
     var d5 = Math.abs(SMA_m1 - SMA_m2);
 
-    return (d1 + d2 + d3 + d4 + d5) / 5; //LOL I HAVE NO IDEA WHAT I'M DOING
+
+    return d5; //LOL I HAVE NO IDEA WHAT I'M DOING
+
   }
 
-  angularDiameter(celestial: Celestial, relative: Celestial, parent: Celestial, relation: Relations): AngularDiameter {
+  angularDiameterSelf(celestial: Celestial): AngularDiameter {
+    //For binary planets: lets them see themselves in the mirror. I.e. "Planet A from B, and planet B from A"
+
+    var ad = new AngularDiameter();
+
+    var cel_SMAAB = this.unitConverter.convert(celestial.SMAAB, LengthUnits.gigameters, LengthUnits.meters);
+    var A_r = this.unitConverter.convert(celestial.radiusA, RadiusUnits.km, RadiusUnits.m);
+    var B_r = this.unitConverter.convert(celestial.radiusB, RadiusUnits.km, RadiusUnits.m);
+
+    var e = celestial.eccentricityAB || 0;
+
+    //Sizes of planet A in the sky of planet B
+    var d_min = cel_SMAAB * (1 - e) - B_r;
+    var d_avg = cel_SMAAB - B_r;
+    var d_max = cel_SMAAB * (1 + e) - B_r;
+
+    var d_minB = cel_SMAAB * (1 - e) - A_r;
+    var d_avgB = cel_SMAAB - A_r;
+    var d_maxB = cel_SMAAB * (1 + e) - A_r;
+
+    ad.min_deg = Math.atan((2 * A_r) / d_min) * 180 / Math.PI;
+    ad.avg_deg = Math.atan((2 * A_r) / d_avg) * 180 / Math.PI;
+    ad.max_deg = Math.atan((2 * A_r) / d_max) * 180 / Math.PI;
+
+    ad.min_degB = Math.atan((2 * B_r) / d_minB) * 180 / Math.PI;
+    ad.avg_degB = Math.atan((2 * B_r) / d_avgB) * 180 / Math.PI;
+    ad.max_degB = Math.atan((2 * B_r) / d_maxB) * 180 / Math.PI;
+
+    ad.binary = false;
+    ad.self = true;
+    ad.celestial = celestial;
+
+    return ad;
+  }
+
+  angularDiameter(celestial: Celestial, relative: Celestial, parent: Celestial, relation: Relations, parentDerivedProperties: DerivedCelestialProperties): AngularDiameter {
 
     var ad = new AngularDiameter();
 
@@ -133,17 +167,22 @@ export class PropertyUpdaterService {
     }
 
     //This applies if we're looking from the moon of a binary planet.
-    //We should calculate different d_mins and d_maxes because the SMAAB
+    //We should calculate different d_mins and d_maxes because the SMAA and SMAB
     //of the binary planets is not neglegible.
+    var d_minB, d_avgB, d_maxB;
     if (relation == Relations.PARENT) {
       d_min = cel_SMA * (1 - cel_e) - cel_r;
       d_avg = cel_SMA - cel_r;
       d_max = cel_SMA * (1 + cel_e) - cel_r;
 
       if (relative.binary) {
-        d_min = cel_SMA * (1 - cel_e) - cel_r - relative.SMAAB * (1 + rel_eAB);
-        d_avg = cel_SMA - cel_r - relative.SMAAB;
-        d_max = cel_SMA * (1 + cel_e) - cel_r + relative.SMAAB * (1 + rel_eAB);
+        d_min = cel_SMA * (1 - cel_e) - cel_r - parentDerivedProperties.SMAA_meters * (1 + rel_eAB);
+        d_avg = Math.sqrt(parentDerivedProperties.SMAA_meters * parentDerivedProperties.SMAA_meters + cel_SMA * cel_SMA) - cel_r;
+        d_max = cel_SMA * (1 + cel_e) - cel_r + parentDerivedProperties.SMAA_meters * (1 + rel_eAB);
+
+        d_minB = cel_SMA * (1 - cel_e) - cel_r - parentDerivedProperties.SMAB_meters * (1 + rel_eAB);
+        d_avgB = Math.sqrt(parentDerivedProperties.SMAB_meters * parentDerivedProperties.SMAB_meters + cel_SMA * cel_SMA) - cel_r;
+        d_maxB = cel_SMA * (1 + cel_e) - cel_r + parentDerivedProperties.SMAB_meters * (1 + rel_eAB);
       }
     }
 
@@ -162,20 +201,29 @@ export class PropertyUpdaterService {
       d_avg = this.findAverageSiblingDistance(celestial, relative) - cel_r;
       d_max = this.findMaxSiblingDistance(celestial, relative) - cel_r;
     }
+    if (relation == Relations.PARENT && relative.binary) {
+      ad.min_deg = Math.atan((2 * rel_r) / d_min) * 180 / Math.PI;
+      ad.avg_deg = Math.atan((2 * rel_r) / d_avg) * 180 / Math.PI;
+      ad.max_deg = Math.atan((2 * rel_r) / d_max) * 180 / Math.PI;
+      ad.min_degB = Math.atan((2 * rel_r) / d_minB) * 180 / Math.PI;
+      ad.avg_degB = Math.atan((2 * rel_r) / d_avgB) * 180 / Math.PI;
+      ad.max_degB = Math.atan((2 * rel_r) / d_maxB) * 180 / Math.PI;
+      ad.binary = relative.binary;
+      ad.celestial = relative;
+    } else {
+      ad.min_deg = Math.atan((2 * rel_r) / d_min) * 180 / Math.PI;
+      ad.avg_deg = Math.atan((2 * rel_r) / d_avg) * 180 / Math.PI;
+      ad.max_deg = Math.atan((2 * rel_r) / d_max) * 180 / Math.PI; //max [distance] degrees
+      ad.celestial = relative;
 
-    //TODO: Relations.SELF
-
-    ad.min_deg = Math.atan((2 * rel_r) / d_min) * 180 / Math.PI;
-    ad.avg_deg = Math.atan((2 * rel_r) / d_avg) * 180 / Math.PI;
-    ad.max_deg = Math.atan((2 * rel_r) / d_max) * 180 / Math.PI;
-    ad.celestial = relative;
-
-    ad.binary = relative.binary;
-    if (relative.binary) {
-      ad.min_degB = Math.atan((2 * rel_rB) / d_min) * 180 / Math.PI;
-      ad.avg_degB = Math.atan((2 * rel_rB) / d_avg) * 180 / Math.PI;
-      ad.max_degB = Math.atan((2 * rel_rB) / d_max) * 180 / Math.PI;
+      ad.binary = relative.binary;
+      if (relative.binary) {
+        ad.min_degB = Math.atan((2 * rel_rB) / d_min) * 180 / Math.PI;
+        ad.avg_degB = Math.atan((2 * rel_rB) / d_avg) * 180 / Math.PI;
+        ad.max_degB = Math.atan((2 * rel_rB) / d_max) * 180 / Math.PI;
+      }
     }
+    
     return ad;
   }
 
@@ -200,13 +248,10 @@ export class PropertyUpdaterService {
   apoapsisABperiapsisAB(celestial: Celestial, P: DerivedCelestialProperties): void {
     var apoapsis = celestial.SMAAB * (1 + celestial.eccentricityAB);
     var periapsis = celestial.SMAAB * (1 - celestial.eccentricityAB);
-
     var apoapsis_km = this.unitConverter.convert(apoapsis, LengthUnits.gigameters, LengthUnits.kilometers);
     var apoapsis_AU = this.unitConverter.convert(apoapsis, LengthUnits.gigameters, LengthUnits.AU);
-
     var periapsis_km = this.unitConverter.convert(periapsis, LengthUnits.gigameters, LengthUnits.kilometers);
     var periapsis_AU = this.unitConverter.convert(periapsis, LengthUnits.gigameters, LengthUnits.AU);
-
     P.apoapsisAB_kilometers = math.round(apoapsis_km, INT_PRECISION);
     P.apoapsisAB_gigameters = math.round(apoapsis, DEFAULT_PRECISION);
     P.apoapsisAB_AU = math.round(apoapsis_AU, DEFAULT_PRECISION);
@@ -343,6 +388,45 @@ export class PropertyUpdaterService {
     P.hillSphere_AU = math.round(hillSphere_AU, DEFAULT_PRECISION);
     P.hillSphere_Gm = math.round(hillSphere_Gm, DEFAULT_PRECISION);
     P.hillSphere_km = math.round(hillSphere_km, DEFAULT_PRECISION);
+  }
+
+  rocheLimit(celestial: Celestial, parent: Celestial, P: DerivedCelestialProperties): void {
+    var mass_kg_parent = this.unitConverter.convert(parent.mass, MassUnits.earths, MassUnits.kilograms);
+    var mass_kg = this.unitConverter.convert(celestial.mass, MassUnits.earths, MassUnits.kilograms);
+    var radius_m = this.unitConverter.convert(celestial.radius, RadiusUnits.km, RadiusUnits.m);
+
+    var rocheLimit = radius_m * Math.pow(2 * mass_kg_parent / mass_kg, 1.0 / 3);
+    var rocheLimit_km = this.unitConverter.convert(rocheLimit, LengthUnits.meters, LengthUnits.kilometers);
+    var rocheLimit_Gm = this.unitConverter.convert(rocheLimit, LengthUnits.meters, LengthUnits.gigameters);
+    var rocheLimit_AU = this.unitConverter.convert(rocheLimit, LengthUnits.meters, LengthUnits.AU);
+
+    P.rocheLimit_AU = math.round(rocheLimit_AU, DEFAULT_PRECISION);
+    P.rocheLimit_Gm = math.round(rocheLimit_Gm, DEFAULT_PRECISION);
+    P.rocheLimit_km = math.round(rocheLimit_km, LOW_PRECISION);
+    P.rocheLimit_m = math.round(rocheLimit, INT_PRECISION);
+  }
+  rocheLimitAB(celestial: Celestial, P: DerivedCelestialProperties): void {
+    //Roche limit testing for binary planets to make sure they don't fall apart
+    var rocheLimitA = celestial.radiusA * Math.pow(2 * celestial.massB / celestial.massA, 1.0 / 3);
+    var rocheLimitB = celestial.radiusB * Math.pow(2 * celestial.massA / celestial.massB, 1.0 / 3);
+
+    var rocheLimitA_m = this.unitConverter.convert(rocheLimitA, LengthUnits.kilometers, LengthUnits.meters);
+    var rocheLimitA_Gm = this.unitConverter.convert(rocheLimitA, LengthUnits.kilometers, LengthUnits.gigameters);
+    var rocheLimitA_AU = this.unitConverter.convert(rocheLimitA, LengthUnits.kilometers, LengthUnits.AU);
+
+    var rocheLimitB_m = this.unitConverter.convert(rocheLimitB, LengthUnits.kilometers, LengthUnits.meters);
+    var rocheLimitB_Gm = this.unitConverter.convert(rocheLimitB, LengthUnits.kilometers, LengthUnits.gigameters);
+    var rocheLimitB_AU = this.unitConverter.convert(rocheLimitB, LengthUnits.kilometers, LengthUnits.AU);
+
+    P.rocheLimitA_AU = math.round(rocheLimitA_AU, DEFAULT_PRECISION);
+    P.rocheLimitA_Gm = math.round(rocheLimitA_Gm, DEFAULT_PRECISION);
+    P.rocheLimitA_km = math.round(rocheLimitA, LOW_PRECISION);
+    P.rocheLimitA_m = math.round(rocheLimitA_m, INT_PRECISION);
+
+    P.rocheLimitB_AU = math.round(rocheLimitB_AU, DEFAULT_PRECISION);
+    P.rocheLimitB_Gm = math.round(rocheLimitB_Gm, DEFAULT_PRECISION);
+    P.rocheLimitB_km = math.round(rocheLimitB, LOW_PRECISION);
+    P.rocheLimitB_m = math.round(rocheLimitB_m, INT_PRECISION);
   }
 
   gravity(celestial: Celestial, P: DerivedCelestialProperties): void {
@@ -557,9 +641,22 @@ export class PropertyUpdaterService {
     var kilometers = this.unitConverter.convert(celestial.SMAAB, LengthUnits.gigameters, LengthUnits.kilometers);
     var meters = this.unitConverter.convert(celestial.SMAAB, LengthUnits.gigameters, LengthUnits.meters);
 
+    var ratioA = celestial.massB / celestial.mass;
+    var ratioB = celestial.massA / celestial.mass;
+
     P.SMAAB_AU = math.round(AU, DEFAULT_PRECISION);
     P.SMAAB_kilometers = math.round(kilometers, INT_PRECISION);
     P.SMAAB_meters = math.round(meters, INT_PRECISION);
+
+    P.SMAA_AU = math.round(AU * ratioA, DEFAULT_PRECISION);
+    P.SMAA_gigameters = math.round(celestial.SMAAB * ratioA, DEFAULT_PRECISION);
+    P.SMAA_kilometers = math.round(kilometers * ratioA, INT_PRECISION);
+    P.SMAA_meters = math.round(meters * ratioA, INT_PRECISION);
+
+    P.SMAB_AU = math.round(AU * ratioB, DEFAULT_PRECISION);
+    P.SMAB_gigameters = math.round(celestial.SMAAB * ratioB, DEFAULT_PRECISION);
+    P.SMAB_kilometers = math.round(kilometers * ratioB, INT_PRECISION);
+    P.SMAB_meters = math.round(meters * ratioB, INT_PRECISION);
   }
 
   temperatureAndLuminosity(celestial: Celestial, P: DerivedCelestialProperties): void {

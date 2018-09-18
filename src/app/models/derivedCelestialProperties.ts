@@ -41,6 +41,11 @@ export class DerivedCelestialProperties {
   hillSphere_Gm: number;
   hillSphere_km: number;
 
+  rocheLimit_AU: number;
+  rocheLimit_Gm: number;
+  rocheLimit_km: number;
+  rocheLimit_m: number;
+
   surfaceTemperature_K: number;
   surfaceTemperature_F: number;
   surfaceTemperature_C: number;
@@ -60,6 +65,16 @@ export class DerivedCelestialProperties {
   SMAAB_AU: number;
   SMAAB_kilometers: number;
   SMAAB_meters: number;
+
+  SMAA_AU: number;
+  SMAA_gigameters: number;
+  SMAA_kilometers: number;
+  SMAA_meters: number;
+
+  SMAB_AU: number;
+  SMAB_gigameters: number;
+  SMAB_kilometers: number;
+  SMAB_meters: number;
 
   apoapsisAB_kilometers: number;
   apoapsisAB_gigameters: number;
@@ -123,4 +138,13 @@ export class DerivedCelestialProperties {
   binaryOrbitPeriod_seconds: number;
   binaryOrbitPeriod_localDaysA: number;
   binaryOrbitPeriod_localDaysB: number;
+
+  rocheLimitA_AU: number;
+  rocheLimitA_Gm: number;
+  rocheLimitA_km: number;
+  rocheLimitA_m: number;
+  rocheLimitB_AU: number;
+  rocheLimitB_Gm: number;
+  rocheLimitB_km: number;
+  rocheLimitB_m: number;
 }

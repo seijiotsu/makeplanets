@@ -23,3 +23,10 @@ export enum HillSphere {
   PotentiallyUnstable = "Object further than 1/3rd of parent's Hill sphere, though still within it. Orbit unlikely to remain stable over long time scales.",
   Unstable = "Object outside of parent's Hill sphere"
 }
+
+export class BinaryPlanetStabilityObject {
+  ratio_A: number; //Total force when A is the closest
+  ratio_equidistant: number; //when A and B are equidistant from the moon
+  ratio_B: number; //
+  maxVariance: number; //Maximum variance between ratio_A, ratio_equidistant, ratio_B
+}

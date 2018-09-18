@@ -259,3 +259,8 @@ button.mkp-noformat {
   cursor: pointer;
   outline: inherit;
 }
+
+div.mkp-centerer {
+  display:flex;
+  align-items: center;
+}
