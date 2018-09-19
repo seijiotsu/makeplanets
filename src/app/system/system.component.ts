@@ -53,6 +53,9 @@ export class SystemComponent implements OnInit {
   @Input() selectedRBCelestialSiblings: Celestial[];
   @Input() selectedRBCelestialChecked: boolean[] = [];
 
+  @Input() RBactive: boolean = false;
+  @Input() RBmanipulatingSMA: boolean = true;
+
 
   private angularDiameterCanvas = null;
 
@@ -97,6 +100,11 @@ export class SystemComponent implements OnInit {
         console.log(err);
       });
 
+  }
+
+  toggleRBManipulationType(type: string): void {
+    this.activeSystem.toggleRBManipulationType(type);
+    this.RBmanipulatingSMA = type == 'SMA';
   }
 
   saveSystem(): void {
@@ -187,11 +195,16 @@ export class SystemComponent implements OnInit {
   }
   updateRB(e): void {
     var celestial: Celestial = this.activeSystem.getCelestial(e.target.value);
+
+    this.RBactive = true;
+
     this.selectedRBCelestial = celestial;
     this.selectedRBCelestialSiblings = this.activeSystem.getSiblingObjects(celestial);
     for (var i = 0; i < this.activeSystem.getNumCelestials(); i++) {
       this.selectedRBCelestialChecked[i] = false;
     }
+
+    this.changeRBState(null);
   }
   setAngDType(type) {
     this.activeSystem.setAngDType(type);
@@ -226,6 +239,9 @@ export class SystemComponent implements OnInit {
     }
     if (this.mode == Mode.ImportExportView && mode != Mode.ImportExportView) {
       this.SEExportFileset = null;
+    }
+    if (this.mode == Mode.ResonanceBuilder && mode != Mode.ResonanceBuilder) {
+      this.RBactive = false;
     }
 
     this.mode = mode;
@@ -388,6 +404,27 @@ export class SystemComponent implements OnInit {
     if (alt == 'sidereal-days') {
       c.sidereal = this.unitConverter.convert(value, TimeUnits.days, TimeUnits.hours);
       this.selectedCelestialChanged('sidereal');
+    }
+
+    /*
+     * For resonance builder
+     */
+    if (alt == 'RBSMA-AU') {
+      this.activeSystem.getRBleader().SMA = this.unitConverter.convert(value, LengthUnits.AU, LengthUnits.gigameters);
+      this.activeSystem.calculateRB();
+    }
+    if (alt == 'RBSMA-km') {
+      this.activeSystem.getRBleader().SMA = this.unitConverter.convert(value, LengthUnits.kilometers, LengthUnits.gigameters);
+      this.activeSystem.calculateRB();
+    }
+
+    if (alt == 'RBorbitPeriod-days') {
+      this.activeSystem.getRBleader().orbitPeriod = this.unitConverter.convert(value, TimeUnits.days, TimeUnits.hours);
+      this.activeSystem.calculateRB();
+    }
+    if (alt == 'RBorbitPeriod-years') {
+      this.activeSystem.getRBleader().orbitPeriod = this.unitConverter.convert(value, TimeUnits.years, TimeUnits.hours);
+      this.activeSystem.calculateRB();
     }
 
   }

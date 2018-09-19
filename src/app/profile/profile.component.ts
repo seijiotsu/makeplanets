@@ -15,13 +15,13 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit() {
     this.init();
-    this.get();
   }
 
   init() {
     this.userAPI.initializeUser()
       .subscribe(res => {
         console.log(res);
+        this.get();
       }, err => {
         console.log(err);
       });

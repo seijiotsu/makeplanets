@@ -28,9 +28,12 @@
     <div *ngIf="mode == Mode.ResonanceBuilder">
       <h1>Resonance Builder</h1>
       The <b>Resonance Builder</b> allows you to easily create orbital resonances between sibling celestials. Select a celestial from the drop-down menu to be the <i>leader</i>
-      of the resonance, and then select any number of its sibling celestials from the right-hand side to be <i>followers</i> of the resonance.
+      of the resonance, and then select any number of its sibling celestials to be <i>followers</i> of the resonance. Then, once you're done customizing your resonance, click on
+      the <b>Apply</b> button to apply your changes to the star system.
+      <div class="clr-row">
+        <div class="clr-col-5">
           <div class="clr-row">
-            <div class="clr-col-4">
+            <div class="clr-col-12">
               <h2>Select Celestial</h2>
               <div class="select">
                 <select id="resonanceBuilderSelect" (change)="updateRB($event)">
@@ -42,7 +45,9 @@
                 </select>
               </div>
             </div>
-            <div class="clr-col-7 clr-offset-sm-1" *ngIf="selectedRBCelestial">
+          </div>
+          <div class="clr-row">
+            <div class="clr-col-12" *ngIf="selectedRBCelestial">
               <h2>Create orbital resonance with</h2>
               <div *ngIf="selectedRBCelestialSiblings.length > 0">
                 <clr-checkbox (change)="changeRBState($event)"
@@ -56,6 +61,176 @@
               </div>
             </div>
           </div>
+        </div>
+        <div class="clr-col-6 clr-offset-sm-1">
+          <div *ngIf="this.activeSystem.getRBfollowers().length > 0">
+            <h3>{{this.activeSystem.getRBleader().celestial.name}}</h3>
+            <div class="mkp-cel-prop-bottom-margin-2">
+              Manipulate:<br />
+              <div class="clr-control-container">
+                <div class="clr-radio-wrapper">
+                  <input type="radio" id="RBSMA" name="radio-RBManipulate" class="clr-radio" (click)="toggleRBManipulationType('SMA')" checked="checked">
+                  <label for="RBSMA" class="clr-control-label">Semi-major axis</label>
+                </div>
+                <div class="clr-radio-wrapper">
+                  <input type="radio" id="RBorbitalPeriod" name="radio-RBManipulate" class="clr-radio" (click)="toggleRBManipulationType('orbitPeriod')">
+                  <label for="RBorbitalPeriod" class="clr-control-label">Orbital period</label>
+                </div>
+              </div>
+            </div>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Semi-major axis</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                            class="clr-input"
+                            [attr.disabled]="!RBmanipulatingSMA ? '' : null"
+                            [ngModelOptions]="{standalone: true}"
+                            [(ngModel)]="this.activeSystem.getRBleader().SMA"
+                            (ngModelChange)="this.activeSystem.calculateRB()" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">gigameters (Gm)</span>
+                </div>
+              </div>
+            </form>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{this.activeSystem.getRBleader().SMA_AU | number}}
+                </span>
+                &nbsp;AU
+                <button class="mkp-noformat" (click)="alt_input_RBSMA_AU ? alt_input_RBSMA_AU = false : alt_input_RBSMA_AU = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{this.activeSystem.getRBleader().SMA_km | number}}
+                </span>
+                &nbsp;km
+                <button class="mkp-noformat" (click)="alt_input_RBSMA_km ? alt_input_RBSMA_km = false : alt_input_RBSMA_km = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+            </div>
+            <!--Alternative Inputs-->
+            <div class="mkp-alt-input" *ngIf="alt_input_RBSMA_AU">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-RBSMA-AU" />
+                Astronomical Units (AU)
+                <button class="btn btn-sm btn-icon" (click)="altInput('RBSMA-AU')" [attr.disabled]="!RBmanipulatingSMA ? '' : null">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_RBSMA_AU = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_RBSMA_km">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-RBSMA-km" />
+                kilometers (km)
+                <button class="btn btn-sm btn-icon" (click)="altInput('RBSMA-km')" [attr.disabled]="!RBmanipulatingSMA ? '' : null">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_RBSMA_km = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <div class="clr-form-control">
+                <label class="clr-control-label">Orbital period</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                            class="clr-input"
+                            [ngModelOptions]="{standalone: true}"
+                            [attr.disabled]="RBmanipulatingSMA ? '' : null"
+                            [(ngModel)]="this.activeSystem.getRBleader().orbitPeriod"
+                            (ngModelChange)="this.activeSystem.calculateRB()" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">hours</span>
+                </div>
+              </div>
+            </form>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{this.activeSystem.getRBleader().orbitPeriod_d | number}}
+                </span>
+                &nbsp;days
+                <button class="mkp-noformat" (click)="alt_input_RBorbitPeriod_days ? alt_input_RBorbitPeriod_days = false : alt_input_RBorbitPeriod_days = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{this.activeSystem.getRBleader().orbitPeriod_y | number}}
+                </span>
+                &nbsp;years
+                <button class="mkp-noformat" (click)="alt_input_RBorbitPeriod_years ? alt_input_RBorbitPeriod_years = false : alt_input_RBorbitPeriod_years = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+            </div>
+            <!--Alternative Inputs-->
+            <div class="mkp-alt-input" *ngIf="alt_input_RBorbitPeriod_days">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-RBorbitPeriod-days" />
+                days
+                <button class="btn btn-sm btn-icon" (click)="altInput('RBorbitPeriod-days')" [attr.disabled]="RBmanipulatingSMA ? '' : null">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_RBorbitPeriod_days = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_RBorbitPeriod_years">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-RBorbitPeriod-years" />
+                years
+                <button class="btn btn-sm btn-icon" (click)="altInput('RBorbitPeriod-years')" [attr.disabled]="RBmanipulatingSMA ? '' : null">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_RBorbitPeriod_years = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="clr-row">
+        <div class="clr-col-12">
+          <table class="table" *ngIf="this.activeSystem.getRBfollowers().length > 0">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Period ratio</th>
+                <th>Semi-major axis</th>
+                <th>Orbital period</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let f of activeSystem.getRBfollowers()">
+                <td>{{f.celestial.name}}</td>
+                <td>
+                  <div style="display:flex;">
+                      <input type="text" style="width:1.3rem !important;min-width:0px !important;" class="clr-input" [(ngModel)]="f.ratio1" (ngModelChange)="this.activeSystem.calculateRB()">:
+                      <input type="text" style="width:1.3rem !important;min-width:0px !important;" class="clr-input" [(ngModel)]="f.ratio2" (ngModelChange)="this.activeSystem.calculateRB()">
+                  </div>
+                </td>
+                <td>
+                  {{f.SMA | number}} Gm ({{f.SMA_AU | number}} AU, {{f.SMA_km | number}} km)
+                </td>
+                <td>
+                  {{f.orbitPeriod | number}} hrs ({{f.orbitPeriod_d | number}} days, {{f.orbitPeriod_y | number}} years)
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end" *ngIf="this.activeSystem.getRBfollowers().length > 0">
+        <button class="btn btn-primary" (click)="this.activeSystem.applyResonance()">Apply resonance to system</button>
+      </div>
     </div>
     <div *ngIf="mode == Mode.ImportExportView">
       <h1>Import / Export</h1>
@@ -125,7 +300,11 @@
             </select>
           </div>
         </div>
-        <div class="clr-col-4" *ngIf="selectedAngDCelestial">
+        <div class="clr-col-4" *ngIf="selectedAngDCelestial && selectedAngDCelestial.type == 'star'">
+          <h2>View size in sky of</h2>
+          <i>Angular diameter viewer currently not supported for stars.</i>
+        </div>
+        <div class="clr-col-4" *ngIf="selectedAngDCelestial && selectedAngDCelestial.type != 'star'">
           <h2>View size in sky of</h2>
           <div *ngIf="selectedAngDCelestial.binary">
             <h3>Self</h3>

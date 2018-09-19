@@ -17,8 +17,7 @@
         </button>
       </div>
       <div class="username" *ngIf="auth.isAuthenticated()">
-        <span *ngIf="user"><a class="nostyle" routerLink="/profile">{{user.username}}</a></span>
-        <span *ngIf="!user" routerLink="/profile">Configure your profile</span>
+        <span><a class="nostyle" routerLink="/profile">{{user.username}}</a></span>
         <button class="btn btn-danger" *ngIf="auth.isAuthenticated()"
                 (click)="auth.logout()">
           LOGOUT

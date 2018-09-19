@@ -776,7 +776,14 @@ export class ActiveSystemService {
 
   private RBmanipulationType = "SMA";
   private RBleader: ResonanceBuilderLeader = null;
-  private RBfollowers: ResonanceBuilderFollower[] = null;
+  private RBfollowers: ResonanceBuilderFollower[] = [];
+
+  getRBfollowers(): ResonanceBuilderFollower[] {
+    return this.RBfollowers;
+  }
+  getRBleader(): ResonanceBuilderLeader {
+    return this.RBleader;
+  }
 
   toggleRBManipulationType(type: string): void {
     if (type == 'SMA') this.RBmanipulationType = 'SMA';
@@ -804,7 +811,7 @@ export class ActiveSystemService {
 
     rbl.celestial = celestial;
     rbl.SMA = celestial.SMA;
-    rbl.orbitPeriod = this.getDerivedProperties(celestial).orbitPeriod_days;
+    rbl.orbitPeriod = this.getDerivedProperties(celestial).orbitPeriod_hours;
 
     this.RBleader = rbl;
 
@@ -828,9 +835,14 @@ export class ActiveSystemService {
     } else if (this.RBmanipulationType == 'orbitPeriod') {
       var period_s = this.unitConverter.convert(orbitPeriod, TimeUnits.hours, TimeUnits.seconds);
       var mass_kg = this.unitConverter.convert(this.RBleader.celestial.mass, MassUnits.earths, MassUnits.kilograms);
-      var SMA_m = Math.pow(period_s / (2 * Math.PI), 2) * Constants.G * (mass_kg_parent + mass_kg);
+      var SMA_m = Math.pow(Math.pow(period_s / (2 * Math.PI), 2) * Constants.G * (mass_kg_parent + mass_kg), 1.0/3);
       SMA = this.unitConverter.convert(SMA_m, LengthUnits.meters, LengthUnits.gigameters);
     }
+
+    this.RBleader.SMA_AU = this.unitConverter.convert(SMA, LengthUnits.gigameters, LengthUnits.AU);
+    this.RBleader.SMA_km = this.unitConverter.convert(SMA, LengthUnits.gigameters, LengthUnits.kilometers);
+    this.RBleader.orbitPeriod_d = this.unitConverter.convert(orbitPeriod, TimeUnits.hours, TimeUnits.days);
+    this.RBleader.orbitPeriod_y = this.unitConverter.convert(orbitPeriod, TimeUnits.hours, TimeUnits.years);
 
     console.log("SMA: " + SMA, "Orbital period: " + orbitPeriod);
 
@@ -843,7 +855,41 @@ export class ActiveSystemService {
       var SMA_m = Math.pow(Math.pow(this.unitConverter.convert(f.orbitPeriod, TimeUnits.hours, TimeUnits.seconds) / (2 * Math.PI), 2) * Constants.G * (mass_kg_parent + mass_kg), 1.0/3);
       f.SMA = this.unitConverter.convert(SMA_m, LengthUnits.meters, LengthUnits.gigameters);
 
+      f.orbitPeriod_d = math.round(this.unitConverter.convert(f.orbitPeriod, TimeUnits.hours, TimeUnits.days), 3);
+      f.orbitPeriod_y = math.round(this.unitConverter.convert(f.orbitPeriod, TimeUnits.hours, TimeUnits.years), 3);
+      f.orbitPeriod = math.round(f.orbitPeriod, 2);
+      f.SMA_AU = math.round(this.unitConverter.convert(f.SMA, LengthUnits.gigameters, LengthUnits.AU), 5);
+      f.SMA_km = math.round(this.unitConverter.convert(f.SMA, LengthUnits.gigameters, LengthUnits.kilometers), 2);
+      f.SMA = math.round(f.SMA, 5);
+
+
       console.log("SMA: " + f.SMA, "Orbital period: " + f.orbitPeriod);
+    }
+
+    //Implement bubble sort to sort the celestials by orbit distance
+    var swapped = true;
+    while (swapped) {
+      swapped = false;
+
+      for (var i = 1; i < this.RBfollowers.length; i++) {
+        if (this.RBfollowers[i - 1].SMA > this.RBfollowers[i].SMA) {
+          var temp = this.RBfollowers[i - 1];
+          this.RBfollowers[i - 1] = this.RBfollowers[i];
+          this.RBfollowers[i] = temp;
+          swapped = true;
+        }
+      }
+    }
+
+    console.log(this.RBfollowers);
+  }
+
+  applyResonance() {
+    this.RBleader.celestial.SMA = this.RBleader.SMA;
+
+    for (var i = 0; i < this.RBfollowers.length; i++) {
+      this.RBfollowers[i].celestial.SMA = this.RBfollowers[i].SMA;
+      this.calculateDerivedProperties(this.RBfollowers[i].celestial, 'SMA');
     }
   }
 
