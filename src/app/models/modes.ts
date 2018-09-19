@@ -5,5 +5,6 @@ export enum Mode {
   ImportExportView = 4,
   HomeView = 5,
   Advanced = 6,
-  Tides = 7
+  Tides = 7,
+  ResonanceBuilder = 8
 }

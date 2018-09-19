@@ -25,6 +25,38 @@
         </clr-input-container>
       </form>
     </div>
+    <div *ngIf="mode == Mode.ResonanceBuilder">
+      <h1>Resonance Builder</h1>
+      The <b>Resonance Builder</b> allows you to easily create orbital resonances between sibling celestials. Select a celestial from the drop-down menu to be the <i>leader</i>
+      of the resonance, and then select any number of its sibling celestials from the right-hand side to be <i>followers</i> of the resonance.
+          <div class="clr-row">
+            <div class="clr-col-4">
+              <h2>Select Celestial</h2>
+              <div class="select">
+                <select id="resonanceBuilderSelect" (change)="updateRB($event)">
+                  <option disabled selected> -- select -- </option>
+                  <option *ngFor="let celestial of activeSystem.getAllCelestials()"
+                          [value]="celestial._id">
+                    {{celestial.name}}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div class="clr-col-7 clr-offset-sm-1" *ngIf="selectedRBCelestial">
+              <h2>Create orbital resonance with</h2>
+              <div *ngIf="selectedRBCelestialSiblings.length > 0">
+                <clr-checkbox (change)="changeRBState($event)"
+                              *ngFor="let sibling of selectedRBCelestialSiblings"
+                              [(ngModel)]="selectedRBCelestialChecked[activeSystem.getCelestialIndex(sibling)]">
+                  {{sibling.name}}
+                </clr-checkbox>
+              </div>
+              <div *ngIf="!(selectedRBCelestialSiblings.length > 0)">
+                <i>{{selectedRBCelestial.name}} has no siblings to build a resonance with!</i>
+              </div>
+            </div>
+          </div>
+    </div>
     <div *ngIf="mode == Mode.ImportExportView">
       <h1>Import / Export</h1>
       <h2>Export to Space Engine</h2>
@@ -2925,6 +2957,11 @@
                   <a class="nav-link"
                      (click)="setMode(Mode.Tides)"
                      [ngClass]="{'mkp-selected': mode == Mode.Tides}">Tidal Strength</a>
+                </li>
+                <li>
+                  <a class="nav-link"
+                     (click)="setMode(Mode.ResonanceBuilder)"
+                     [ngClass]="{'mkp-selected': mode == Mode.ResonanceBuilder}">Resonance Builder</a>
                 </li>
               </ul>
             </section>

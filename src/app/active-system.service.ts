@@ -27,6 +27,7 @@ import * as math from 'mathjs'
 import { Constants } from './models/constants';
 import { SystemService } from './system.service';
 import { TideObject } from 'src/app/models/tides';
+import { ResonanceBuilderLeader, ResonanceBuilderFollower } from './models/resonanceBuilder';
 
 @Injectable({
   providedIn: 'root'
@@ -771,6 +772,79 @@ export class ActiveSystemService {
     }
 
     console.log("Stability tree built!", this.stabilityMap);
+  }
+
+  private RBmanipulationType = "SMA";
+  private RBleader: ResonanceBuilderLeader = null;
+  private RBfollowers: ResonanceBuilderFollower[] = null;
+
+  toggleRBManipulationType(type: string): void {
+    if (type == 'SMA') this.RBmanipulationType = 'SMA';
+    if (type == 'orbitPeriod') this.RBmanipulationType = 'orbitPeriod';
+  }
+
+  handleRBState(celestial: Celestial, celestialsChecked: boolean[]): void {
+    this.RBfollowers = [];
+
+    var increment = 2;
+    for (var i = 0; i < celestialsChecked.length; i++) {
+      if (celestialsChecked[i]) {
+        var cel = this.system.celestials[i];
+
+        var rb = new ResonanceBuilderFollower();
+        rb.celestial = cel;
+        rb.ratio1 = 1;
+        rb.ratio2 = increment++;
+
+        this.RBfollowers.push(rb);
+      }
+    }
+
+    var rbl = new ResonanceBuilderLeader();
+
+    rbl.celestial = celestial;
+    rbl.SMA = celestial.SMA;
+    rbl.orbitPeriod = this.getDerivedProperties(celestial).orbitPeriod_days;
+
+    this.RBleader = rbl;
+
+    this.calculateRB();
+  }
+
+  calculateRB() {
+    //Could also implement with Kepler's 3rd law
+
+    var parent = this.getParentObject(this.RBleader.celestial);
+    var mass_kg_parent = this.unitConverter.convert(parent.mass, MassUnits.earths, MassUnits.kilograms);
+
+    var SMA = this.RBleader.SMA; // In Gigameters
+    var orbitPeriod = this.RBleader.orbitPeriod; // In hours
+
+    if (this.RBmanipulationType == 'SMA') {
+      var SMA_m = this.unitConverter.convert(SMA, LengthUnits.gigameters, LengthUnits.meters);
+      var mass_kg = this.unitConverter.convert(this.RBleader.celestial.mass, MassUnits.earths, MassUnits.kilograms);
+      var period_s = 2 * Math.PI * Math.pow(Math.pow(SMA_m, 3) / (Constants.G * (mass_kg_parent + mass_kg)), 0.5);
+      orbitPeriod = this.unitConverter.convert(period_s, TimeUnits.seconds, TimeUnits.hours);
+    } else if (this.RBmanipulationType == 'orbitPeriod') {
+      var period_s = this.unitConverter.convert(orbitPeriod, TimeUnits.hours, TimeUnits.seconds);
+      var mass_kg = this.unitConverter.convert(this.RBleader.celestial.mass, MassUnits.earths, MassUnits.kilograms);
+      var SMA_m = Math.pow(period_s / (2 * Math.PI), 2) * Constants.G * (mass_kg_parent + mass_kg);
+      SMA = this.unitConverter.convert(SMA_m, LengthUnits.meters, LengthUnits.gigameters);
+    }
+
+    console.log("SMA: " + SMA, "Orbital period: " + orbitPeriod);
+
+    for (var i = 0; i < this.RBfollowers.length; i++) {
+      var f = this.RBfollowers[i];
+      var ratio = f.ratio2 * 1.0 / f.ratio1;
+      f.orbitPeriod = ratio * orbitPeriod;
+
+      var mass_kg = this.unitConverter.convert(f.celestial.mass, MassUnits.earths, MassUnits.kilograms);
+      var SMA_m = Math.pow(Math.pow(this.unitConverter.convert(f.orbitPeriod, TimeUnits.hours, TimeUnits.seconds) / (2 * Math.PI), 2) * Constants.G * (mass_kg_parent + mass_kg), 1.0/3);
+      f.SMA = this.unitConverter.convert(SMA_m, LengthUnits.meters, LengthUnits.gigameters);
+
+      console.log("SMA: " + f.SMA, "Orbital period: " + f.orbitPeriod);
+    }
   }
 
   getAngDZoom(): number {

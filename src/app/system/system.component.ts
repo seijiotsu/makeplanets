@@ -49,6 +49,10 @@ export class SystemComponent implements OnInit {
 
   @Input() SEExportFileset: SpaceEngineFileset;
 
+  @Input() selectedRBCelestial: Celestial;
+  @Input() selectedRBCelestialSiblings: Celestial[];
+  @Input() selectedRBCelestialChecked: boolean[] = [];
+
 
   private angularDiameterCanvas = null;
 
@@ -181,6 +185,14 @@ export class SystemComponent implements OnInit {
       }
     }
   }
+  updateRB(e): void {
+    var celestial: Celestial = this.activeSystem.getCelestial(e.target.value);
+    this.selectedRBCelestial = celestial;
+    this.selectedRBCelestialSiblings = this.activeSystem.getSiblingObjects(celestial);
+    for (var i = 0; i < this.activeSystem.getNumCelestials(); i++) {
+      this.selectedRBCelestialChecked[i] = false;
+    }
+  }
   setAngDType(type) {
     this.activeSystem.setAngDType(type);
     this.activeSystem.handleAngularDiameterDrawing(this.getAngularDiameterCanvas(), this.selectedAngDCelestial, this.selectedAngDCelestialChecked);
@@ -199,6 +211,10 @@ export class SystemComponent implements OnInit {
 
   drawAngDCanvas(e) {
     this.activeSystem.handleAngularDiameterDrawing(this.getAngularDiameterCanvas(), this.selectedAngDCelestial, this.selectedAngDCelestialChecked);
+  }
+
+  changeRBState(e) {
+    this.activeSystem.handleRBState(this.selectedRBCelestial, this.selectedRBCelestialChecked);
   }
 
   setMode(mode: Mode): void {
