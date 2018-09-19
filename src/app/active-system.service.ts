@@ -317,10 +317,12 @@ export class ActiveSystemService {
       this.propertyUpdater.apoapsisPeriapsis(celestial, properties);
     }
 
-    if (all || p == 'SMA' || p == 'mass' || p == 'stability' || p == 'sidereal') {
+    if (all || p == 'SMA' || p == 'mass' || p == 'stability' || p == 'sidereal' || p == 'siderealB' || p == 'siderealA') {
 
       if (!isStar) {
         this.propertyUpdater.orbitPeriod(celestial, parent, properties);
+        if (!isBinary) this.propertyUpdater.tidalLock(celestial, properties);
+        if (isBinary) this.propertyUpdater.mutualTidalLock(celestial, properties);
       }
     }
 
@@ -425,6 +427,7 @@ export class ActiveSystemService {
     if (all && isBinary || p == 'mutualTidalLock' || p == 'stability') {
       this.propertyUpdater.mutualTidalLock(celestial, properties);
     }
+    if (all && !isBinary || p == 'tidalLock') this.propertyUpdater.tidalLock(celestial, properties);
 
     if (all && isBinary || p == 'SMAAB' || p == 'eccentricityAB' || (p == 'stability' && isBinary)) {
       this.propertyUpdater.apoapsisABperiapsisAB(celestial, properties);

@@ -20,10 +20,15 @@ var CelestialSchema = new mongoose.Schema({
   obliquity: { type: Number, default: 0 },
 
   sidereal: { type: Number, default: 0 },
+  tidalLock: { type: Number, default: 0 },
 
   //For planets and moons only
   albedo: { type: Number, default: 0 },
   greenhouse: { type: Number, default: 0 },
+
+  rings: { type: Boolean, default: false },
+  ringsInnerLimit: { type: Number, default: 0 },
+  ringsOuterLimit: { type: Number, default: 0 },
 
   binary: { type: Boolean, default: false },
 
@@ -31,28 +36,35 @@ var CelestialSchema = new mongoose.Schema({
   nameB: { type: String },
 
   SMAAB: { type: Number},
-  eccentricityAB: { type: Number },
-  inclinationAB: { type: Number },
-  ascendingNodeAB: { type: Number },
-  argOfPeriapsisAB: { type: Number },
+  eccentricityAB: { type: Number, default: 0 },
+  inclinationAB: { type: Number, default: 0 },
+  ascendingNodeAB: { type: Number, default: 0 },
+  argOfPeriapsisAB: { type: Number, default: 0 },
 
-  massA: { type: Number },
-  radiusA: { type: Number },
-  massB: { type: Number },
-  radiusB: { type: Number },
+  massA: { type: Number, default: 0 },
+  radiusA: { type: Number, default: 0 },
+  massB: { type: Number, default: 0 },
+  radiusB: { type: Number, default: 0 },
 
-  mutualTidalLock: { type: Boolean },
+  mutualTidalLock: { type: Boolean, default: false },
 
-  obliquityA: { type: Number },
-  obliquityB: { type: Number },
+  obliquityA: { type: Number, default: 0 },
+  obliquityB: { type: Number, default: 0 },
 
-  siderealA: { type: Number },
-  siderealB: { type: Number },
+  siderealA: { type: Number, default: 0 },
+  siderealB: { type: Number, default: 0 },
 
-  albedoA: { type: Number },
-  greenhouseA: { type: Number },
-  albedoB: { type: Number },
-  greenhouseB: { type: Number }
+  albedoA: { type: Number, default: 0 },
+  greenhouseA: { type: Number, default: 0 },
+  albedoB: { type: Number, default: 0 },
+  greenhouseB: { type: Number, default: 0 },
+
+  ringsA: { type: Boolean, default: false },
+  ringsAInnerLimit: { type: Number, default: 0 },
+  ringsAOuterLimit: { type: Number, default: 0 },
+  ringsB: { type: Boolean, default: false },
+  ringsBInnerLimit: { type: Number, default: 0 },
+  ringsBOuterLimit: { type: Number, default: 0 }
 });
 
 module.exports = mongoose.model('Celestial', CelestialSchema)

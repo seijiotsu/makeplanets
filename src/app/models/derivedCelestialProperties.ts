@@ -20,6 +20,13 @@ export class DerivedCelestialProperties {
   orbitPeriod_seconds: number;
   orbitPeriod_localDays: number;
 
+  sidereal_concat: string;
+  sidereal_years: number;
+  sidereal_days: number;
+  sidereal_hours: number;
+  sidereal_minutes: number;
+  sidereal_seconds: number;
+
   mass_sun: number;
   mass_jup: number;
   mass_moon: number;
@@ -49,6 +56,8 @@ export class DerivedCelestialProperties {
   surfaceTemperature_K: number;
   surfaceTemperature_F: number;
   surfaceTemperature_C: number;
+
+  tidalLockTime: number;
 
   //FOR PLANETS AND MOONS ONLY
   insolation_W: number;
@@ -139,6 +148,19 @@ export class DerivedCelestialProperties {
   binaryOrbitPeriod_localDaysA: number;
   binaryOrbitPeriod_localDaysB: number;
 
+  siderealA_concat: string;
+  siderealA_years: number;
+  siderealA_days: number;
+  siderealA_hours: number;
+  siderealA_minutes: number;
+  siderealA_seconds: number;
+  siderealB_concat: string;
+  siderealB_years: number;
+  siderealB_days: number;
+  siderealB_hours: number;
+  siderealB_minutes: number;
+  siderealB_seconds: number;
+
   rocheLimitA_AU: number;
   rocheLimitA_Gm: number;
   rocheLimitA_km: number;
@@ -147,4 +169,7 @@ export class DerivedCelestialProperties {
   rocheLimitB_Gm: number;
   rocheLimitB_km: number;
   rocheLimitB_m: number;
+
+  orbitPeriod_localDaysA: number;
+  orbitPeriod_localDaysB: number;
 }

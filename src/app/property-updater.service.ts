@@ -535,7 +535,14 @@ export class PropertyUpdaterService {
     /*
     * http://www.celestialnorth.org/FAQtoids/dazed_about_days_(solar_and_sidereal).htm
     */
-    P.orbitPeriod_localDays = math.round(period_hour/((period_hour * celestial.sidereal) / (period_hour - celestial.sidereal)), DEFAULT_PRECISION); //buggy for venus
+    if (!celestial.binary) {
+      P.orbitPeriod_localDays = math.round(period_hour / ((period_hour * celestial.sidereal) / (period_hour - celestial.sidereal)), DEFAULT_PRECISION); //buggy for venus
+    } else {
+      P.orbitPeriod_localDaysA = math.round(period_hour / ((period_hour * celestial.siderealA) / (period_hour - celestial.siderealA)), DEFAULT_PRECISION); //buggy for venus
+      P.orbitPeriod_localDaysB = math.round(period_hour / ((period_hour * celestial.siderealB) / (period_hour - celestial.siderealB)), DEFAULT_PRECISION); //buggy for venus
+    }
+
+
 
     var orbit: string = "";
     orbit += Math.floor(period_year) + (Math.floor(period_year) == 1 ? " year, " : " years, ");
@@ -545,6 +552,78 @@ export class PropertyUpdaterService {
     orbit += Math.floor(period % 60) + (Math.floor(period % 60) == 1 ? " second" : " seconds");
 
     P.orbitPeriod_concat = orbit;
+  }
+
+  sidereal(celestial: Celestial, P: DerivedCelestialProperties) {
+
+    var period_hour = celestial.sidereal || 0;
+    var period_min = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.minutes);
+    var period_seconds = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.seconds);
+    var period_day = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.days);
+    var period_year = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.years);
+
+    P.sidereal_seconds = math.round(period_seconds, DEFAULT_PRECISION);
+    P.sidereal_minutes = math.round(period_min, DEFAULT_PRECISION);
+    P.sidereal_hours = math.round(period_hour, DEFAULT_PRECISION);
+    P.sidereal_days = math.round(period_day, DEFAULT_PRECISION);
+    P.sidereal_years = math.round(period_year, DEFAULT_PRECISION);
+
+    var orbit: string = "";
+    orbit += Math.floor(period_year) + (Math.floor(period_year) == 1 ? " year, " : " years, ");
+    orbit += Math.floor(period_day % Constants.daysInYear) + (Math.floor(period_day % Constants.daysInYear) == 1 ? " day, " : " days, ");
+    orbit += Math.floor(period_hour % 24) + (Math.floor(period_hour % 24) == 1 ? " hour, " : " hours, ");
+    orbit += Math.floor(period_min % 60) + (Math.floor(period_min % 60) == 1 ? " minutes, and " : " minutes, and ");
+    orbit += Math.floor(period_seconds % 60) + (Math.floor(period_seconds % 60) == 1 ? " second" : " seconds");
+
+    P.sidereal_concat = orbit;
+
+  }
+
+  siderealAB(celestial: Celestial, P: DerivedCelestialProperties) {
+
+    var period_hour = celestial.siderealA || 0;
+    var period_min = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.minutes);
+    var period_seconds = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.seconds);
+    var period_day = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.days);
+    var period_year = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.years);
+
+    P.siderealA_seconds = math.round(period_seconds, DEFAULT_PRECISION);
+    P.siderealA_minutes = math.round(period_min, DEFAULT_PRECISION);
+    P.siderealA_hours = math.round(period_hour, DEFAULT_PRECISION);
+    P.siderealA_days = math.round(period_day, DEFAULT_PRECISION);
+    P.siderealA_years = math.round(period_year, DEFAULT_PRECISION);
+
+    var orbit: string = "";
+    orbit += Math.floor(period_year) + (Math.floor(period_year) == 1 ? " year, " : " years, ");
+    orbit += Math.floor(period_day % Constants.daysInYear) + (Math.floor(period_day % Constants.daysInYear) == 1 ? " day, " : " days, ");
+    orbit += Math.floor(period_hour % 24) + (Math.floor(period_hour % 24) == 1 ? " hour, " : " hours, ");
+    orbit += Math.floor(period_min % 60) + (Math.floor(period_min % 60) == 1 ? " minutes, and " : " minutes, and ");
+    orbit += Math.floor(period_seconds % 60) + (Math.floor(period_seconds % 60) == 1 ? " second" : " seconds");
+
+    P.siderealA_concat = orbit;
+
+    /*Object B*/
+
+    period_hour = celestial.siderealB || 0;
+    period_min = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.minutes);
+    period_seconds = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.seconds);
+    period_day = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.days);
+    period_year = this.unitConverter.convert(period_hour, TimeUnits.hours, TimeUnits.years);
+
+    P.siderealB_seconds = math.round(period_seconds, DEFAULT_PRECISION);
+    P.siderealB_minutes = math.round(period_min, DEFAULT_PRECISION);
+    P.siderealB_hours = math.round(period_hour, DEFAULT_PRECISION);
+    P.siderealB_days = math.round(period_day, DEFAULT_PRECISION);
+    P.siderealB_years = math.round(period_year, DEFAULT_PRECISION);
+
+    orbit = "";
+    orbit += Math.floor(period_year) + (Math.floor(period_year) == 1 ? " year, " : " years, ");
+    orbit += Math.floor(period_day % Constants.daysInYear) + (Math.floor(period_day % Constants.daysInYear) == 1 ? " day, " : " days, ");
+    orbit += Math.floor(period_hour % 24) + (Math.floor(period_hour % 24) == 1 ? " hour, " : " hours, ");
+    orbit += Math.floor(period_min % 60) + (Math.floor(period_min % 60) == 1 ? " minutes, and " : " minutes, and ");
+    orbit += Math.floor(period_seconds % 60) + (Math.floor(period_seconds % 60) == 1 ? " second" : " seconds");
+
+    P.siderealB_concat = orbit;
   }
 
   binaryOrbitPeriod(celestial: Celestial, P: DerivedCelestialProperties) {
@@ -580,8 +659,14 @@ export class PropertyUpdaterService {
     if (celestial.mutualTidalLock) {
       celestial.siderealA = P.binaryOrbitPeriod_hours;
       celestial.siderealB = celestial.siderealA;
-
     }
+    this.siderealAB(celestial, P);
+  }
+  tidalLock(celestial: Celestial, P: DerivedCelestialProperties) {
+    if (celestial.tidalLock) {
+      celestial.sidereal = P.orbitPeriod_hours;
+    }
+    this.sidereal(celestial, P);
   }
 
   radius(celestial: Celestial, P: DerivedCelestialProperties): void {

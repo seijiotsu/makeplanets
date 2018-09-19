@@ -17,11 +17,16 @@ export class Celestial {
   radius: number;
   obliquity: number;
 
-  sidereal: number; //If binary planet, use siderealAB, or siderealA and siderealB
+  sidereal: number; //If binary planet, use siderealA and siderealB
+  tidalLock: number;
 
   //For planets and moons only
   albedo: number;
   greenhouse: number;
+
+  rings: boolean;
+  ringsInnerLimit: number;
+  ringsOuterLimit: number;
 
   //Binary planets, using absolutely horrid OOP practices.
   binary: boolean;
@@ -50,6 +55,13 @@ export class Celestial {
 
   greenhouseA: number;
   greenhouseB: number;
+
+  ringsA: boolean;
+  ringsB: boolean;
+  ringsAInnerLimit: number;
+  ringsAOuterLimit: number;
+  ringsBInnerLimit: number;
+  ringsBOuterLimit: number;
 
   //TODO: replace with json deserializer
   constructor(id, name, type, parent, SMA, e, mass, radius, albedo, greenhouse) {

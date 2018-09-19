@@ -16,7 +16,7 @@ import { ExporterService } from '../exporter.service';
 import { SpaceEngineFileset } from '../models/export/spaceEngineFileset';
 import { UnitConverterService } from '../unit-converter.service';
 
-import { LengthUnits, MassUnits, RadiusUnits, TemperatureUnitTypes } from '../models/units';
+import { LengthUnits, MassUnits, RadiusUnits, TemperatureUnitTypes, TimeUnits } from '../models/units';
 
 declare var Snap: any;
 declare var mina: any;
@@ -227,6 +227,8 @@ export class SystemComponent implements OnInit {
     var value: number = parseFloat((<HTMLInputElement>document.getElementById('alt-input-' + alt)).value);
     var c = this.selectedCelestial;
 
+    console.log("User inputting " + alt);
+
     /*
      * I sometimes forget case-switch breaks and didn't want to debug that so I'm using if-statements here
      */
@@ -357,6 +359,19 @@ export class SystemComponent implements OnInit {
     if (alt == 'greenhouseB-F') {
       c.greenhouseB = this.unitConverter.convertTemperatureDifference(value, TemperatureUnitTypes.fahrenheit, TemperatureUnitTypes.celsius);
       this.selectedCelestialChanged('greenhouseB');
+    }
+
+    if (alt == 'siderealA-days') {
+      c.siderealA = this.unitConverter.convert(value, TimeUnits.days, TimeUnits.hours);
+      this.selectedCelestialChanged('siderealA');
+    }
+    if (alt == 'siderealB-days') {
+      c.siderealB = this.unitConverter.convert(value, TimeUnits.days, TimeUnits.hours);
+      this.selectedCelestialChanged('siderealB');
+    }
+    if (alt == 'sidereal-days') {
+      c.sidereal = this.unitConverter.convert(value, TimeUnits.days, TimeUnits.hours);
+      this.selectedCelestialChanged('sidereal');
     }
 
   }

@@ -646,11 +646,23 @@
                   </span>
                   &nbsp;seconds
                 </span>
-                <span class="label mkp-prop">
+                <span class="label mkp-prop" *ngIf="!selectedCelestial.binary">
                   <span>
                     {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_localDays | number}}
                   </span>
                   &nbsp;local days
+                </span>
+                <span class="label mkp-prop" *ngIf="selectedCelestial.binary">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_localDaysA | number}}
+                  </span>
+                  &nbsp;local {{selectedCelestial.nameA}} days
+                </span>
+                <span class="label mkp-prop" *ngIf="selectedCelestial.binary">
+                  <span>
+                    {{activeSystem.getDerivedProperties(selectedCelestial).orbitPeriod_localDaysB | number}}
+                  </span>
+                  &nbsp;local {{selectedCelestial.nameB}} days
                 </span>
               </div>
             </div>
@@ -1294,7 +1306,7 @@
                 </div>
               </div>
             </form>
-            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin-2">
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
               <div class="clr-form-control">
                 <label class="clr-control-label">Sidereal Day</label>
                 <div class="clr-control-container">
@@ -1317,6 +1329,50 @@
                 Mutual tidal lock
               </clr-checkbox>
             </form>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).siderealA_concat}}
+                </span>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).siderealA_years | number}}
+                </span>
+                &nbsp;years
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).siderealA_days | number}}
+                </span>
+                &nbsp;days
+                <button class="mkp-noformat" (click)="alt_input_siderealA_days ? alt_input_siderealA_days = false : alt_input_siderealA_days = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).siderealA_minutes | number}}
+                </span>
+                &nbsp;minutes
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).siderealA_seconds | number}}
+                </span>
+                &nbsp;seconds
+              </span>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_siderealA_days">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-siderealA-days" />
+                Earth days
+                <button class="btn btn-sm btn-icon" [attr.disabled]="selectedCelestial.mutualTidalLock ? '' : null" (click)="altInput('siderealA-days')">Enter</button>
+              </div>
+              <button class="btn btn-link" (click)="alt_input_siderealA_days = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
             <label class="clr-control-label">Density</label>
             <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
               <span class="label mkp-prop">
@@ -1443,6 +1499,43 @@
                 </span>
               </div>
             </div>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <clr-checkbox name="ringsACheckbox"
+                            id="ringsACheckbox"
+                            [(ngModel)]="selectedCelestial.ringsA">
+                Enable planetary rings
+              </clr-checkbox>
+              <div class="clr-form-control">
+                <label class="clr-control-label">Rings inner limit</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [attr.disabled]="!selectedCelestial.ringsA ? '' : null"
+                           [(ngModel)]="selectedCelestial.ringsAInnerLimit"
+                           (ngModelChange)="selectedCelestialChanged('ringsA')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">kilometers (km)</span>
+                </div>
+              </div>
+              <div class="clr-form-control">
+                <label class="clr-control-label">Rings outer limit</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [attr.disabled]="!selectedCelestial.ringsA ? '' : null"
+                           [(ngModel)]="selectedCelestial.ringsAOuterLimit"
+                           (ngModelChange)="selectedCelestialChanged('ringsA')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">kilometers (km)</span>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
         <div class="clr-col-6">
@@ -1662,7 +1755,7 @@
                 </div>
               </div>
             </form>
-            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin-2">
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
               <div class="clr-form-control">
                 <label class="clr-control-label">Sidereal Day</label>
                 <div class="clr-control-container">
@@ -1679,6 +1772,51 @@
                 </div>
               </div>
             </form>
+            <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).siderealB_concat}}
+                </span>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).siderealB_years | number}}
+                </span>
+                &nbsp;years
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).siderealB_days | number}}
+                </span>
+                &nbsp;days
+                <button class="mkp-noformat" (click)="alt_input_siderealB_days ? alt_input_siderealB_days = false : alt_input_siderealB_days = true">
+                  <clr-icon shape="switch"></clr-icon>
+                </button>
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).siderealB_minutes | number}}
+                </span>
+                &nbsp;minutes
+              </span>
+              <span class="label mkp-prop">
+                <span>
+                  {{activeSystem.getDerivedProperties(selectedCelestial).siderealB_seconds | number}}
+                </span>
+                &nbsp;seconds
+              </span>
+            </div>
+            <div class="mkp-alt-input" *ngIf="alt_input_siderealB_days">
+              <div>
+                <input type="number" class="clr-input" id="alt-input-siderealB-days" />
+                Earth days
+                <button class="btn btn-sm btn-icon" [attr.disabled]="selectedCelestial.mutualTidalLock ? '' : null" (click)="altInput('siderealB-days')">Enter</button>
+              </div>
+              <button class="btn btn-link"
+                      (click)="alt_input_siderealB_days = false">
+                <clr-icon shape="window-close"></clr-icon>
+              </button>
+            </div>
             <label class="clr-control-label">Density</label>
             <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
               <span class="label mkp-prop">
@@ -1805,6 +1943,43 @@
                 </span>
               </div>
             </div>
+            <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+              <clr-checkbox name="ringsBCheckbox"
+                            id="ringsBCheckbox"
+                            [(ngModel)]="selectedCelestial.ringsB">
+                Enable planetary rings
+              </clr-checkbox>
+              <div class="clr-form-control">
+                <label class="clr-control-label">Rings inner limit</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [attr.disabled]="!selectedCelestial.ringsB ? '' : null"
+                           [(ngModel)]="selectedCelestial.ringsBInnerLimit"
+                           (ngModelChange)="selectedCelestialChanged('ringsB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">kilometers (km)</span>
+                </div>
+              </div>
+              <div class="clr-form-control">
+                <label class="clr-control-label">Rings outer limit</label>
+                <div class="clr-control-container">
+                  <div class="clr-input-wrapper">
+                    <input type="number"
+                           class="clr-input"
+                           [ngModelOptions]="{standalone: true}"
+                           [attr.disabled]="!selectedCelestial.ringsB ? '' : null"
+                           [(ngModel)]="selectedCelestial.ringsOuterLimitB"
+                           (ngModelChange)="selectedCelestialChanged('ringsB')" />
+                    <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                  </div>
+                  <span class="clr-subtext">kilometers (km)</span>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -2311,7 +2486,7 @@
                       </div>
                     </div>
                   </form>
-                  <form class="clr-form clr-form-compact no-padding">
+                  <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
                     <div class="clr-form-control">
                       <label class="clr-control-label">Sidereal Day</label>
                       <div class="clr-control-container">
@@ -2327,6 +2502,62 @@
                       </div>
                     </div>
                   </form>
+                  <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).sidereal_concat}}
+                      </span>
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).sidereal_years | number}}
+                      </span>
+                      &nbsp;years
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).sidereal_days | number}}
+                      </span>
+                      &nbsp;days
+                      <button class="mkp-noformat" (click)="alt_input_sidereal_days ? alt_input_sidereal_days = false : alt_input_sidereal_days = true">
+                        <clr-icon shape="switch"></clr-icon>
+                      </button>
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).sidereal_minutes | number}}
+                      </span>
+                      &nbsp;minutes
+                    </span>
+                    <span class="label mkp-prop">
+                      <span>
+                        {{activeSystem.getDerivedProperties(selectedCelestial).sidereal_seconds | number}}
+                      </span>
+                      &nbsp;seconds
+                    </span>
+                  </div>
+                  <div class="mkp-alt-input" *ngIf="alt_input_sidereal_days">
+                    <div>
+                      <input type="number" class="clr-input" id="alt-input-sidereal-days" />
+                      Earth days
+                      <button class="btn btn-sm btn-icon"
+                              [attr.disabled]="selectedCelestial.tidalLock ? '' : null"
+                              (click)="altInput('sidereal-days')">Enter</button>
+                    </div>
+                    <button class="btn btn-link" (click)="alt_input_sidereal_days = false">
+                      <clr-icon shape="window-close"></clr-icon>
+                    </button>
+                  </div>
+                  <clr-checkbox name="tidalLock"
+                                id="tidalLock"
+                                [(ngModel)]="selectedCelestial.tidalLock"
+                                (click)="selectedCelestialChanged('tidalLock')">
+                    Tidal lock
+                  </clr-checkbox>
+                  <p class="p5">
+                    Checking this box will set {{selectedCelestial.name}}'s day length to be
+                    equal to its orbital period. {{selectedCelestial.name}} {{activeSystem.getDerivedProperties(selectedCelestial).tidalLockTime}}
+                  </p>
                 </div>
               </div>
               <div class="clr-col-6">
@@ -2553,7 +2784,7 @@
                   <div>
                     <label class="clr-control-label">Hill sphere</label>
                     <p class="p5 no-padding no-margin">Satellites are generally stable if they orbit within half of the Hill sphere's outer limit.</p>
-                    <div class="mkp-cel-prop-unit-spans">
+                    <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
                       <span class="label mkp-prop">
                         <span>
                           {{activeSystem.getDerivedProperties(selectedCelestial).hillSphere_AU | number}}
@@ -2576,10 +2807,12 @@
                   </div>
                   <div>
                     <label class="clr-control-label">Roche limit</label>
-                    <p class="p5 no-padding no-margin">The roche limit is the inner limit that a satellite may orbit its parent, and varies individually
-                    for each satellite depending on its density. If a satellite is closer to its
-                    parent than its roche limit, it will disintegrate into a ring system.</p>
-                    <div class="mkp-cel-prop-unit-spans">
+                    <p class="p5 no-padding no-margin">
+                      The roche limit represents the closest that {{selectedCelestial.name}} may orbit its parent. It is calculated based
+                      off of the relative densities and masses between {{selectedCelestial.name}} and its parent, and if {{selectedCelestial.name}}'s
+                      orbit is inside of its roche limit then it will disintegrate into a ring system.
+                    </p>
+                    <div class="mkp-cel-prop-unit-spans mkp-cel-prop-bottom-margin-2">
                       <span class="label mkp-prop">
                         <span>
                           {{activeSystem.getDerivedProperties(selectedCelestial).rocheLimit_AU | number}}
@@ -2609,23 +2842,48 @@
 
                 </div>
               </div>
-            </div>
-            <!--
-          <div class="mkp-cel-system-container">
-          <clr-tabs>
-            <clr-tab>
-              <button clrTabLink id="link1">Properties</button>
-              <clr-tab-content id="content1" *clrIfActive="true">
-                <div class="clr-row">
-                  <div class="clr-col-6">
-                  </div>
+              <div class="clr-col-6">
+                <div class="mkp-cel-prop mkp-cel-prop-bottom-margin-2" *ngIf="selectedCelestial.type != 'star'">
+                  <form class="clr-form clr-form-compact no-padding mkp-cel-prop-bottom-margin">
+                    <clr-checkbox name="ringsCheckbox"
+                                  id="ringsCheckbox"
+                                  [(ngModel)]="selectedCelestial.rings">
+                      Enable planetary rings
+                    </clr-checkbox>
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Rings inner limit</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [attr.disabled]="!selectedCelestial.rings ? '' : null"
+                                 [(ngModel)]="selectedCelestial.ringsInnerLimit"
+                                 (ngModelChange)="selectedCelestialChanged('rings')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext">kilometers (km)</span>
+                      </div>
+                    </div>
+                    <div class="clr-form-control">
+                      <label class="clr-control-label">Rings outer limit</label>
+                      <div class="clr-control-container">
+                        <div class="clr-input-wrapper">
+                          <input type="number"
+                                 class="clr-input"
+                                 [ngModelOptions]="{standalone: true}"
+                                 [attr.disabled]="!selectedCelestial.rings ? '' : null"
+                                 [(ngModel)]="selectedCelestial.ringsOuterLimit"
+                                 (ngModelChange)="selectedCelestialChanged('rings')" />
+                          <clr-icon class="clr-validate-icon" shape="exclamation-circle"></clr-icon>
+                        </div>
+                        <span class="clr-subtext">kilometers (km)</span>
+                      </div>
+                    </div>
+                  </form>
                 </div>
-              </clr-tab-content>
-            </clr-tab>
-          </clr-tabs>
-        </div>
-        -->
-
+              </div>
+            </div>
           </div>
         </div>
         <nav class="sidenav">
